@@ -1,0 +1,16 @@
+{
+    "terminal.integrated.profiles.windows": {
+        "PowerShell-Conda": {
+            "source":"PowerShell",
+            "path": "pwsh.exe",
+            "args": [
+                "-NoExit", 
+                "-File", "C:\\ProgramData\\Anaconda3\\shell\\condabin\\conda-hook.ps1",
+            ]
+        }
+    },
+    "python.analysis.typeCheckingMode": "basic",
+    "terminal.integrated.defaultProfile.windows": "PowerShell-Conda",
+    "python.defaultInterpreterPath": "C:\\Users\\Yudong Sun\\.conda\\envs\\FermiQP\\python.exe",
+    "python.terminal.activateEnvironment": true
+}
