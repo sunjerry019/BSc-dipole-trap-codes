@@ -14,14 +14,18 @@ class DipoleTrapLi():
         omega = 2*pi*c / lambda
 
         Args:
-            wavelength (float): Wavelength [nm]
+            wavelength (float): Wavelength [m, nm]
 
         Returns:
             float: Angular frequency in s^-1
         """
 
-        # Converts a wavelength in nanometers of light to radians
-        return (2*np.pi*sc.speed_of_light*1e9)/(wavelength)
+        if wavelength > 1:
+            # its in nm
+            # Converts a wavelength in nanometers of light to radians
+            return (2*np.pi*sc.speed_of_light*1e9)/(wavelength)
+        else:
+            return (2*np.pi*sc.speed_of_light)/(wavelength)
 
     @staticmethod
     def alpha(wavelength: float) -> complex:
@@ -171,7 +175,6 @@ class DipoleTrapLi():
 
         return intensity
 
-    
 def transform_quaternion_angle(axis: np.ndarray, degrees: float) -> Rotation: 
     """Generates a scipy.spatial.transform.Rotation object from a rotation axis and how many degrees to rotate.
     The Rotation object is generated using quarternions
