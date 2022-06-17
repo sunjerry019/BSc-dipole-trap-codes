@@ -3,7 +3,6 @@
 import numpy as np
 from dipoletrapli import DipoleTrapLi, rotate_points, cartesian_product 
 
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LinearLocator
 
@@ -11,26 +10,26 @@ beam_params = [
     {
         "w_0": [25e-6  , 25e-6 ], # m
         "z_0": [0   , 0  ], # m
-        "Msq": [1 , 1],
+        "Msq": [1.1 , 1.1],
     },
     {
         "w_0": [25e-6  , 25e-6 ], # m
         "z_0": [0   , 0  ], # m
-        "Msq": [1 , 1],
+        "Msq": [1.1 , 1.1],
     }
 ]
 
 wavelength = 1070e-9  #nm
 # We generate in the x-z plane
 
-x = np.linspace(start = -45, stop = 45, num = 5000, endpoint = True) * 1e-6
-z = np.linspace(start = -4,  stop = 4, num = 5000, endpoint = True) * 1e-3
+x = np.linspace(start = -200, stop = 200, num = 5000, endpoint = True) * 1e-6
+z = np.linspace(start = -0.5, stop = 0.5, num = 5000, endpoint = True) * 1e-3
 y = np.array([0])
 
 points = cartesian_product(x, y, z)
 
 rotation_axis = np.array([0,1,0]) # y-axis
-angle_between_beams = 0.5
+angle_between_beams = 20
 power = 100 # W
 
 points_beam1 = rotate_points(points = points, axis = rotation_axis, degrees =  angle_between_beams/2)
@@ -66,8 +65,8 @@ potentials_for_contour_plotting = potentials.reshape((len(x), len(z))).T
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 X, Z = np.meshgrid(x, z)
 # Plot the surface.
-surf = ax.plot_surface(X = X, Y = Z, Z = potentials_for_contour_plotting, cmap=cm.coolwarm,
-                    linewidth=0, antialiased=False)
+surf = ax.plot_surface(X = X, Y = Z, Z = potentials_for_contour_plotting, cmap="inferno",
+                    linewidth=0, antialiased=True)
 
 # Customize the z axis.
 # ax.set_zlim(-1.01, 1.01)
