@@ -30,7 +30,7 @@ y = np.array([0])
 points = cartesian_product(x, y, z)
 
 rotation_axis = np.array([0,1,0]) # y-axis
-angle_between_beams = 1
+angle_between_beams = 0.5
 power = 100 # W
 
 points_beam1 = rotate_points(points = points, axis = rotation_axis, degrees =  angle_between_beams/2)
