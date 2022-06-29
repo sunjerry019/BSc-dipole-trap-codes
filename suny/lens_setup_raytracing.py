@@ -9,11 +9,11 @@ import raytracing as RT
 ## Initial
 height_0 = 0              # m
 yMax = 0.5
-angle_0  = 20 # Determined by AOM
+angle_0  = 10 # Determined by AOM
 
 ## Lenses
 f_1 = 75e-3  # m
-f_2 = 100e-3
+f_2 = 400e-3
 f_3 = 200e-3
 
 path = RT.ImagingPath()
