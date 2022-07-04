@@ -114,6 +114,10 @@ class DipoleTrapLi():
         )
 
     @staticmethod
+    def get_spot_size(f: float, radius_at_lens: float, Msq: float, wavelength: float):
+        return (Msq * wavelength * f) / (np.pi * radius_at_lens)
+
+    @staticmethod
     def max_intensity(power: float, width_x: Union[float, np.ndarray], width_y: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """Generate the max-intensity of the gaussian intensity distribution given power, w_x and w_y
 

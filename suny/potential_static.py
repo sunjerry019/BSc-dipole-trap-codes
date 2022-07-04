@@ -81,3 +81,8 @@ ax.set_ylabel('Propagation direction z')
 fig.colorbar(surf, shrink=0.5, aspect=5)
 
 plt.show()
+
+
+min_point = np.argmin(potentials)
+print("Min Potential at =", points[min_point] * 1e6, "um")
+print("Trap Depth =", DipoleTrapLi.trap_temperature(trap_depth = potentials[min_point]*1e-27)*1e3, "mK")
