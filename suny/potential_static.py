@@ -27,6 +27,7 @@ wavelength = 1070e-9  #nm
 rotation_axis = np.array([0,1,0]) # y-axis
 angle_between_beams = 20          # degrees
 power = 100                       # W
+PLOT3D = False
 # END SETTINGS
 
 ## matplotlib settings
@@ -67,40 +68,51 @@ potentials_mk = DipoleTrapLi.trap_temperature(trap_depth = potentials*1e-27)*1e3
 
 # https://matplotlib.org/stable/gallery/images_contours_and_fields/contour_demo.html
 potentials_for_contour_plotting = potentials_mk.reshape((len(x), len(z))).T
+X, Z = np.meshgrid(x * 1e6, z * 1e3)
 
 # fig, ax = plt.subplots()
 # cs      = ax.contour(x, z, potentials_for_contour_plotting, levels = 15)
 # # ax.clabel(cs, inline=True, fontsize=10)
 # ax.set_title('Simplest default with labels')
 
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-X, Z = np.meshgrid(x * 1e6, z * 1e3)
-# Plot the surface.
-surf = ax.plot_surface(X = X, Y = Z, Z = potentials_for_contour_plotting, cmap="inferno_r",
-                    linewidth=0, antialiased=True, rasterized = True)
+if PLOT3D:
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    
+    # Plot the surface.
+    surf = ax.plot_surface(X = X, Y = Z, Z = potentials_for_contour_plotting, cmap="inferno_r",
+                        linewidth=0, antialiased=True, rasterized = True)
 
-ax.view_init(elev = 31., azim = -50)
+    ax.view_init(elev = 31., azim = -50)
 
-# Customize the z axis.
-# ax.set_zlim(-1.01, 1.01)
-ax.zaxis.set_major_locator(LinearLocator(10))
-# A StrMethodFormatter is used automatically
-ax.zaxis.set_major_formatter('{x:.02f}')
+    # Customize the z axis.
+    # ax.set_zlim(-1.01, 1.01)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    # A StrMethodFormatter is used automatically
+    ax.zaxis.set_major_formatter('{x:.02f}')
 
-# DO LABELS
-fig.suptitle(f'Static Beam Trap Depth (Beam Separation ${angle_between_beams}^\\circ$, Power ${power}$ W)', y = 0.9)
-ax.set_xlabel('$x$ ($\\mu$m)')
-ax.set_ylabel('Propagation direction $z$ (mm)')
-ax.set_zlabel('Trap Depth (mK $\\cdot k_B$)', linespacing=5)
-ax.invert_zaxis()
-# END DO LABELS
+    # DO LABELS
+    fig.suptitle(f'Static Beam Trap Depth (Beam Separation ${angle_between_beams}^\\circ$, Power ${power}$ W)', y = 0.9)
+    ax.set_xlabel('$x$ ($\\mu$m)')
+    ax.set_ylabel('Propagation direction $z$ (mm)')
+    ax.set_zlabel('Trap Depth (mK $\\cdot k_B$)', linespacing=5)
+    ax.invert_zaxis()
+    # END DO LABELS
 
-# Add a color bar which maps values to colors.
-fig.colorbar(surf, shrink=0.5, aspect=5, orientation="vertical", pad=0.2)
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5, orientation="vertical", pad=0.2)
 
-# plt.tight_layout()
-fig.set_size_inches(8, 4.8)
-plt.show()
+    # plt.tight_layout()
+    fig.set_size_inches(8, 4.8)
+    plt.show()
+else:
+    # Plot 2D colour map
+    # http://www.peterbeerli.com/classes/images/2/26/Isc4304matplotlib6.pdf
+
+    fig, ax = plt.subplots()
+    p = ax.pcolormesh(X, Z, potentials_for_contour_plotting, cmap="inferno_r", vmin=potentials_for_contour_plotting.min(), vmax=potentials_for_contour_plotting.max())
+    cb = fig.colorbar(p, ax = ax)
+
+    plt.show()
 
 min_point = np.argmin(potentials)
 print("Min Potential at =", points[min_point] * 1e6, "um")
