@@ -22,15 +22,17 @@ beam_params = [
 wavelength = 1070e-9  #nm
 # We generate in the x-z plane
 
+# BEG SETTINGS
+rotation_axis = np.array([0,1,0]) # y-axis
+angle_between_beams = 20          # degrees
+power = 100 # W
+# END SETTINGS
+
 x = np.linspace(start = -200, stop = 200, num = 5000, endpoint = True) * 1e-6
 z = np.linspace(start = -0.5, stop = 0.5, num = 5000, endpoint = True) * 1e-3
 y = np.array([0])
 
 points = cartesian_product(x, y, z)
-
-rotation_axis = np.array([0,1,0]) # y-axis
-angle_between_beams = 20
-power = 100 # W
 
 points_beam1 = rotate_points(points = points, axis = rotation_axis, degrees =  angle_between_beams/2)
 points_beam2 = rotate_points(points = points, axis = rotation_axis, degrees = -angle_between_beams/2)
