@@ -54,6 +54,7 @@ class DipoleTrapLi():
         return result
 
     @staticmethod
+    @np.vectorize
     def potential(intensity: Union[float, np.ndarray], wavelength: float) -> Union[float, np.ndarray]:
         """Calculates the dipole potential using equation (2) of the Grimms Review Paper
 
@@ -74,6 +75,7 @@ class DipoleTrapLi():
         return U_dip
 
     @staticmethod
+    @np.vectorize
     def trap_temperature(trap_depth: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """Converts a trap depth (i.e. min dipole potential) to a temperature using T = U/kB
 
@@ -87,6 +89,7 @@ class DipoleTrapLi():
         return -trap_depth/sc.Boltzmann
 
     @staticmethod
+    @np.vectorize
     def gaussian_beam_width(z: Union[float, np.ndarray], w_0: float , z_0: float, Msq: float, wavelength: float) -> Union[float, np.ndarray]:
         """ Returns the gaussian beam width based on a gaussian beam propagation
         
@@ -118,6 +121,7 @@ class DipoleTrapLi():
         return (Msq * wavelength * f) / (np.pi * radius_at_lens)
 
     @staticmethod
+    @np.vectorize
     def max_intensity(power: float, width_x: Union[float, np.ndarray], width_y: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """Generate the max-intensity of the gaussian intensity distribution given power, w_x and w_y
 
@@ -136,6 +140,7 @@ class DipoleTrapLi():
         return (2 * power) / (np.pi * (width_x*width_y))
 
     @staticmethod
+    @np.vectorize
     def intensity(
             x: Union[float, np.ndarray], y: Union[float, np.ndarray], z: Union[float, np.ndarray],
             power: float, 
