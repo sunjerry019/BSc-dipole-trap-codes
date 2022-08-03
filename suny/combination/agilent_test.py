@@ -13,7 +13,7 @@ print('*IDN: %s' % idn.rstrip('\n'))
 
 agilent_session.write("*RST")
 agilent_session.write("FREQ 80 MHz")
-agilent_session.write("POW -15 dB")
+agilent_session.write("POW -15 dBm")
 agilent_session.write("OUTP:STAT ON")
 
 time.sleep(1)
