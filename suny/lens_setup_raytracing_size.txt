@@ -1,0 +1,4 @@
+Width: 1972
+Height: 816
+
+xdotool windowsize $WINDOW_ID_GOES_HERE $WIDTH $HEIGHT
