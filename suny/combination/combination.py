@@ -38,13 +38,15 @@ agilent_session.write("FREQ 80 MHz")
 # Setting the frequency modulation deviation to 0 Hz.
 agilent_session.write("FM:DEV 0 Hz")
 
-powers = np.around(np.linspace(start = 0, stop = -10, endpoint = True, num = 21), decimals = 2)
+powers = np.around(np.linspace(start = 0, stop = -15, endpoint = True, num = 61), decimals = 2)
+print(powers)
 
 for RFpower in powers:
     print(f"Taking data for {RFpower} dBm")
 
     agilent_session.write(f"POW {RFpower} dBm")
     agilent_session.write("OUTP:STAT ON")
+    time.sleep(1)
 
     print("Taking Optical Power Data...")
     power_meas = []
@@ -58,7 +60,8 @@ for RFpower in powers:
 
     agilent_session.write("OUTP:STAT OFF")
 
-    dtpt = [RFpower, np.mean(power_meas_np), np.std(power_meas_np)]
+    dtpt = [ RFpower, np.mean(power_meas_np), np.std(power_meas_np) ]
+    dtpt = [ str(x) for x in dtpt ]
 
     with open(filename, 'a') as f:
         f.write("\t".join(dtpt))
