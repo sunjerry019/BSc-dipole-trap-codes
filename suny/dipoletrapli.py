@@ -2,9 +2,10 @@
 
 import numpy as np
 import scipy.constants as sc
-from typing import Union, Tuple
+from typing import Callable, Union, Tuple
 
 from scipy.spatial.transform import Rotation
+import scipy.integrate
 
 
 class DipoleTrapLi():
@@ -175,9 +176,78 @@ class DipoleTrapLi():
 
         I0 = DipoleTrapLi.max_intensity(power = power, width_x = w_x, width_y = w_y)
 
+        if isinstance(x, np.ndarray) and x.ndim > 1:
+            assert isinstance(I0, np.ndarray)
+            assert isinstance(y, np.ndarray)
+            assert isinstance(w_x, np.ndarray)
+            assert isinstance(w_y, np.ndarray)
+
+            I0  = I0 [:, np.newaxis]
+            y   = y  [:, np.newaxis]
+            w_x = w_x[:, np.newaxis]
+            w_y = w_y[:, np.newaxis]
+        
+        print("Calculating Intensities...", end = "\r")
         intensity = I0 * np.exp(-2*((x/w_x)**2 + (y/w_y)**2))
+        print("Calculating Intensities...Done!")
 
         return intensity
+
+    @staticmethod
+    def intensity_average(
+            x: Union[float, np.ndarray], y: Union[float, np.ndarray], z: Union[float, np.ndarray],
+            power: float, 
+            wavelength: float,
+            w_0: Tuple[float, float],
+            z_0: Tuple[float, float],
+            Msq: Tuple[float, float],
+            numsamples: int, 
+            deviation: float,
+            modulation_function: Callable
+        ) -> Union[float, np.ndarray]:
+        """Returns the intensity of a guassian beam at a point in 3D space averaged over time using the modulation function. Assumes a simple astigmatic beam
+
+        Note that this function is normalized if:
+        - Everything is in SI-Units, or
+        - w, w_0: [um], z, z_0: [mm], lmbda: [nm] (preferred)
+
+        Args:
+            x (Union[float, np.ndarray]): x position (one of the main axes)     [m, um]
+            y (Union[float, np.ndarray]): y position (one of the main axes)     [m, um]
+            z (Union[float, np.ndarray]): z position (propagation direction)    [m, mm]
+            power (float): Power of the beam                                    [W]
+            wavelength (float): Wavelength of the light                         [m, nm]
+            w_0 (Tuple[float, float]): Tuple of the beam waist (x, y axes)      [m, um]
+            z_0 (Tuple[float, float]): Tuple of the rayleigh length (x, y axes) [m, mm]
+            Msq (Tuple[float, float]): Tuple of the beam quality factor M^2 (x, y axes)
+            numsamples (int): Number of samples to take for the integration
+            deviation (float): Amplitude of the modulation for the propagation axis [m, um]
+            modulation_function (Callable): Function to modulate the position with. This function should take one parameter t (0 to 1) and have range -1 to 1
+
+        Returns:
+            float: The averaged intensity at that point [W/m^2, W/um^2]
+        """ 
+
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.simpson.html?highlight=simps#scipy.integrate.simpson
+
+        if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
+            xs_t = x[:, np.newaxis]
+        else:
+            xs_t = x
+
+        # sample t from 0 to 1
+        ts     = np.linspace(start = 0, stop = 1, endpoint = True, num = numsamples)
+        f_of_t = DipoleTrapLi.intensity(
+            x = xs_t - deviation * modulation_function(ts), 
+            y = y, 
+            z = z, 
+            power = power,
+            wavelength = wavelength,
+            w_0 = w_0, z_0 = z_0, Msq = Msq)
+
+        integrated = scipy.integrate.simpson(y = f_of_t, x = ts)
+        
+        return integrated
 
 def transform_quaternion_angle(axis: np.ndarray, degrees: float) -> Rotation: 
     """Generates a scipy.spatial.transform.Rotation object from a rotation axis and how many degrees to rotate.
