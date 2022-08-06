@@ -40,7 +40,7 @@ def sine_mod(t):
     return np.sin(2*np.pi*t)
 
 def ramp_mod(t):
-    return t - 0.5
+    return 2*(t - 0.5)
 
 # modulation_function = sine_mod
 # modulation_function_name = "Simple Sinusoidal Modulation"
