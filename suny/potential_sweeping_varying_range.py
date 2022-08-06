@@ -30,26 +30,23 @@ rotation_axis = np.array([0,1,0]) # y-axis
 power = 100                       # W
 numpoints_x = 700
 numpoints_z = 700
-nrows = 2; ncols = 2
+nrows = 2; ncols = 4
 figwidth = 8; figheight = 4.8
 
 # in units of waists
 # begin = 1; end = nrows * ncols - 1
 sweeping_range = [0, 1, 2, 4]
-assert len(sweeping_range) == (nrows * ncols)
 
 t_samples = 100
 def sine_mod(t):
     return np.sin(2*np.pi*t)
 
 def ramp_mod(t):
-    return t - 0.5
+    return 2*(t - 0.5)
 
-modulation_function = sine_mod
-modulation_function_name = "Sinusoidal Modulation"
+modulation_functions = [ramp_mod, sine_mod]
+modulation_function_names = ["Ramp Modulation", "Sinusoidal Modulation"]
 
-# modulation_function = ramp_mod
-# modulation_function_name = "Ramp Modulation"
 # END SETTINGS
 
 ## matplotlib settings
@@ -74,65 +71,71 @@ assert isinstance(axs, np.ndarray)
 
 allpotentials = []
 
-for rng in sweeping_range:
-    print(f"Calculating for sweeping range = {rng} waists...")
-    points_beam1 = rotate_points(points = points, axis = rotation_axis, degrees =  angle_between_beams/2)
-    points_beam2 = rotate_points(points = points, axis = rotation_axis, degrees = -angle_between_beams/2)
+for i, mod_func in enumerate(modulation_functions):
+    allpotentials.append([])
+    print(f"........{modulation_function_names[i]}....")
+    for rng in sweeping_range:
+        print(f"Calculating for sweeping range = {rng} waists...")
+        points_beam1 = rotate_points(points = points, axis = rotation_axis, degrees =  angle_between_beams/2)
+        points_beam2 = rotate_points(points = points, axis = rotation_axis, degrees = -angle_between_beams/2)
 
-    intensities_1 = DipoleTrapLi.intensity_average(
-        x = points_beam1[:,0], y = points_beam1[:,1], z = points_beam1[:,2], 
-        power = power, wavelength = wavelength,
-        numsamples = t_samples,
-        modulation_function = modulation_function,
-        deviation = rng * waist,
-        **beam_params[0]
-    )
-    intensities_2 = DipoleTrapLi.intensity_average(
-        x = points_beam2[:,0], y = points_beam2[:,1], z = points_beam2[:,2], 
-        power = power, wavelength = wavelength,
-        numsamples = t_samples,
-        modulation_function = modulation_function,
-        deviation = rng * waist,
-        **beam_params[1]
-    )
+        intensities_1 = DipoleTrapLi.intensity_average(
+            x = points_beam1[:,0], y = points_beam1[:,1], z = points_beam1[:,2], 
+            power = power, wavelength = wavelength,
+            numsamples = t_samples,
+            modulation_function = mod_func,
+            deviation = rng * waist,
+            **beam_params[0]
+        )
+        intensities_2 = DipoleTrapLi.intensity_average(
+            x = points_beam2[:,0], y = points_beam2[:,1], z = points_beam2[:,2], 
+            power = power, wavelength = wavelength,
+            numsamples = t_samples,
+            modulation_function = mod_func,
+            deviation = rng * waist,
+            **beam_params[1]
+        )
 
-    potential_1 = DipoleTrapLi.potential(intensity = intensities_1, wavelength = wavelength)*1e27 # Turn into reasonable units
-    potential_2 = DipoleTrapLi.potential(intensity = intensities_2, wavelength = wavelength)*1e27
-    potentials = potential_1 + potential_2
+        potential_1 = DipoleTrapLi.potential(intensity = intensities_1, wavelength = wavelength)*1e27 # Turn into reasonable units
+        potential_2 = DipoleTrapLi.potential(intensity = intensities_2, wavelength = wavelength)*1e27
+        potentials = potential_1 + potential_2
 
-    assert isinstance(potentials, np.ndarray)
-    assert isinstance(potential_1, np.ndarray)
-    assert isinstance(potential_2, np.ndarray)
+        assert isinstance(potentials, np.ndarray)
+        assert isinstance(potential_1, np.ndarray)
+        assert isinstance(potential_2, np.ndarray)
 
-    potentials_mk = DipoleTrapLi.trap_temperature(trap_depth = potentials*1e-27)*1e3
-    
-    assert isinstance(potentials_mk, np.ndarray)
+        potentials_mk = DipoleTrapLi.trap_temperature(trap_depth = potentials*1e-27)*1e3
+        
+        assert isinstance(potentials_mk, np.ndarray)
 
-    # https://matplotlib.org/stable/gallery/images_contours_and_fields/contour_demo.html
-    potentials_for_contour_plotting = potentials_mk.reshape((len(x), len(z))).T
-    allpotentials.append(potentials_for_contour_plotting)
-    print(f"Calculating for sweeping range = {rng} waists...Done")
+        # https://matplotlib.org/stable/gallery/images_contours_and_fields/contour_demo.html
+        potentials_for_contour_plotting = potentials_mk.reshape((len(x), len(z))).T
+        allpotentials[i].append(potentials_for_contour_plotting)
+        print(f"Calculating for sweeping range = {rng} waists...Done")
+    print(f"........{modulation_function_names[i]}....Done")
 
 allpotentials_np  = np.array(allpotentials)
-minimum_potential = np.min(allpotentials_np)
-maximum_potential = np.max(allpotentials_np)
+minimum_potential = np.amin(allpotentials_np) # auto-flattens
+maximum_potential = np.amax(allpotentials_np)
 
 for i in range(nrows):
     for j in range(ncols):
-        print(f"Making colormesh for range = {sweeping_range[i * nrows + j]} waist...", end = '\r')
-        p = axs[i, j].pcolormesh(X, Z, allpotentials[i * nrows + j], \
+        p = axs[i, j].pcolormesh(X, Z, allpotentials[i][j], \
             cmap = "inferno_r", \
             vmin = minimum_potential, \
             vmax = maximum_potential, \
             rasterized = True)
-        axs[i, j].set_title(f"$\\sigma = {sweeping_range[i * nrows + j]}\\omega_0$")
-        print(f"Making colormesh for range = {sweeping_range[i * nrows + j]} waist...Done")
+
+        if i == 0:
+            axs[i, j].set_title(f"$\\sigma = {sweeping_range[j]}\\omega_0$")
+        if j == 0:
+            axs[i, j].set_ylabel(f"{modulation_function_names[i]}")
 
 cb = fig.colorbar(cm.ScalarMappable(norm = None, cmap = "inferno_r"), ax = axs)
 
 # SET LABELS
 cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
-fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ({modulation_function_name}, $10^\\circ$ Separation) at varying range $\\sigma$')
+fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ($10^\\circ$ Separation) at varying amplitude $\\sigma$')
 fig.supxlabel('$x$ ($\\mu$m)')
 fig.supylabel('Propagation direction $z$ (mm)')
 # END SET LABELS
