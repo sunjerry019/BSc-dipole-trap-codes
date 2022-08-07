@@ -106,7 +106,6 @@ if mpirank == 0:
 
     settings = []
 
-    # TODO: Make an array of mod function and deviation and scatter them
     for mod_func in modulation_functions:
         for rng in sweeping_range:
             settings.append((mod_func, rng))
@@ -159,16 +158,17 @@ for mod_func, rng in mychunk:
     print(f"Rank {mpirank}: Calculating for {mod_func}, {rng}...Done")
 
 print(f"Rank {mpirank}: Calculation Done")
+
+mypotentials  = np.array(mypotentials)
+allpotentials = np.empty((mpisize, *np.shape(mypotentials)), dtype = np.float64)
+
+# https://stackoverflow.com/a/36082684
+# https://www.kth.se/blogs/pdc/2019/11/parallel-programming-in-python-mpi4py-part-2/
+split_counts  = [np.size(mypotentials)] * mpisize
+displacements = np.insert(np.cumsum(split_counts),0,0)[0:-1]
 comm.Barrier()
 
-allpotentials = np.array([])
-if mpirank == 0:
-    allpotentials = np.empty((mpisize, *np.shape(mypotentials)), dtype = np.float64)
-    print("Allpot shape: ", np.shape(allpotentials))
-
-print(f"Rank {mpirank}: {np.shape(mypotentials)}")
-
-comm.Gatherv(sendbuf = mypotentials, recvbuf = allpotentials, root = 0)
+comm.Gatherv(sendbuf = mypotentials, recvbuf = [allpotentials, split_counts, displacements, MPI.DOUBLE], root = 0)
 
 if mpirank == 0:
     minimum_potential = np.amin(allpotentials) # auto-flattens

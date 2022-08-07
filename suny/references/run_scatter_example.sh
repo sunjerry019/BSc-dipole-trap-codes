@@ -1,0 +1,1 @@
+mpiexec -n 8 python3 scatter_example.py
