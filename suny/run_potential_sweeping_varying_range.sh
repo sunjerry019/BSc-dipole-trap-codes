@@ -1,0 +1,1 @@
+mpiexec -n 8 python3 potential_sweeping_varying_range.py

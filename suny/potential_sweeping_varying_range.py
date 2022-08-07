@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import numpy as np
 from sympy import false
 from dipoletrapli import DipoleTrapLi, rotate_points, cartesian_product 
@@ -8,7 +9,17 @@ from matplotlib import rc
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+from mpi4py import MPI
 
+comm = MPI.COMM_WORLD
+mpisize = comm.Get_size()
+mpirank = comm.Get_rank()
+
+# if size != 8:
+#     print("Please run with 8 nodes")
+#     sys.exit()
+
+## GLOBAL SETTINGS
 waist = 25e-6
 beam_params = [
     {
@@ -29,6 +40,7 @@ wavelength = 1070e-9  #nm
 rotation_axis = np.array([0,1,0]) # y-axis
 power = 100                       # W
 numpoints_x = 700
+numpoints_y = 1
 numpoints_z = 700
 nrows = 2; ncols = 4
 figwidth = 8; figheight = 4.8
@@ -46,100 +58,149 @@ def ramp_mod(t):
 
 modulation_functions = [ramp_mod, sine_mod]
 modulation_function_names = ["Ramp Modulation", "Sinusoidal Modulation"]
-
 # END SETTINGS
-
-## matplotlib settings
-rc('text', usetex = True)
-rc('text.latex', preamble = r"\usepackage{libertine}")
-rc('font', size = 11, family = "Serif")
-## END MPL Settings
 
 angle_between_beams = 10
 
-# We generate in the x-z plane
-x = np.linspace(start = -150, stop = 150, num = numpoints_x, endpoint = True) * 1e-6 # 5000
-z = np.linspace(start = -0.75, stop = 0.75, num = numpoints_z, endpoint = True) * 1e-3 # 5000
-y = np.array([0])
+num_elements = numpoints_x * numpoints_y * numpoints_z
 
-points = cartesian_product(x, y, z)
+## GLOBAL SETTINGS
+fig, axs = None, np.array([])
+x, y, z  = 0, 0, 0
 
-X, Z = np.meshgrid(x * 1e6, z * 1e3)
+if mpirank == 0:
+    ## matplotlib settings
+    rc('text', usetex = True)
+    rc('text.latex', preamble = r"\usepackage{libertine}")
+    rc('font', size = 11, family = "Serif")
+    ## END MPL Settings
 
-fig, axs = plt.subplots(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
-assert isinstance(axs, np.ndarray)
+    fig, axs = plt.subplots(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
+    assert isinstance(axs, np.ndarray)
 
-allpotentials = []
+    # We generate in the x-z plane
+    x = np.linspace(start = -150, stop = 150, num = numpoints_x, endpoint = True, dtype = np.float64) * 1e-6 # 5000
+    z = np.linspace(start = -0.75, stop = 0.75, num = numpoints_z, endpoint = True, dtype = np.float64) * 1e-3 # 5000
+    y = np.array([0], dtype = np.float64)
 
-for i, mod_func in enumerate(modulation_functions):
-    allpotentials.append([])
-    print(f"........{modulation_function_names[i]}....")
-    for rng in sweeping_range:
-        print(f"Calculating for sweeping range = {rng} waists...")
-        points_beam1 = rotate_points(points = points, axis = rotation_axis, degrees =  angle_between_beams/2)
-        points_beam2 = rotate_points(points = points, axis = rotation_axis, degrees = -angle_between_beams/2)
+    points = cartesian_product(x, y, z)
 
-        intensities_1 = DipoleTrapLi.intensity_average(
-            x = points_beam1[:,0], y = points_beam1[:,1], z = points_beam1[:,2], 
-            power = power, wavelength = wavelength,
-            numsamples = t_samples,
-            modulation_function = mod_func,
-            deviation = rng * waist,
-            **beam_params[0]
-        )
-        intensities_2 = DipoleTrapLi.intensity_average(
-            x = points_beam2[:,0], y = points_beam2[:,1], z = points_beam2[:,2], 
-            power = power, wavelength = wavelength,
-            numsamples = t_samples,
-            modulation_function = mod_func,
-            deviation = rng * waist,
-            **beam_params[1]
-        )
+    points_beam1 = rotate_points(points = points, axis = rotation_axis, degrees =  angle_between_beams/2)
+    points_beam2 = rotate_points(points = points, axis = rotation_axis, degrees = -angle_between_beams/2)
+else:
+    points_beam1 = np.empty((num_elements, 3), dtype = np.float64)
+    points_beam2 = np.empty((num_elements, 3), dtype = np.float64)
 
-        potential_1 = DipoleTrapLi.potential(intensity = intensities_1, wavelength = wavelength)*1e27 # Turn into reasonable units
-        potential_2 = DipoleTrapLi.potential(intensity = intensities_2, wavelength = wavelength)*1e27
-        potentials = potential_1 + potential_2
+# https://mpi4py.readthedocs.io/en/stable/tutorial.html > Broadcasting np array
+comm.Bcast(points_beam1, root = 0)
+comm.Bcast(points_beam2, root = 0)
 
-        assert isinstance(potentials, np.ndarray)
-        assert isinstance(potential_1, np.ndarray)
-        assert isinstance(potential_2, np.ndarray)
+total_elements = len(modulation_functions) * len(sweeping_range)
+assert total_elements % mpisize == 0, f"Number of nodes not compatible; Total = {total_elements}, Nodes = {mpisize}"
+chunksize = int(total_elements / mpisize)
 
-        potentials_mk = DipoleTrapLi.trap_temperature(trap_depth = potentials*1e-27)*1e3
-        
-        assert isinstance(potentials_mk, np.ndarray)
+settings_chunked = []
 
-        # https://matplotlib.org/stable/gallery/images_contours_and_fields/contour_demo.html
-        potentials_for_contour_plotting = potentials_mk.reshape((len(x), len(z))).T
-        allpotentials[i].append(potentials_for_contour_plotting)
-        print(f"Calculating for sweeping range = {rng} waists...Done")
-    print(f"........{modulation_function_names[i]}....Done")
+if mpirank == 0:
+    print(f"Chunksize = {chunksize}")
 
-allpotentials_np  = np.array(allpotentials)
-minimum_potential = np.amin(allpotentials_np) # auto-flattens
-maximum_potential = np.amax(allpotentials_np)
+    settings = []
 
-for i in range(nrows):
-    for j in range(ncols):
-        p = axs[i, j].pcolormesh(X, Z, allpotentials[i][j], \
-            cmap = "inferno_r", \
-            vmin = minimum_potential, \
-            vmax = maximum_potential, \
-            rasterized = True)
+    # TODO: Make an array of mod function and deviation and scatter them
+    for mod_func in modulation_functions:
+        for rng in sweeping_range:
+            settings.append((mod_func, rng))
 
-        if i == 0:
-            axs[i, j].set_title(f"$\\sigma = {sweeping_range[j]}\\omega_0$")
-        if j == 0:
-            axs[i, j].set_ylabel(f"{modulation_function_names[i]}")
+    # https://www.geeksforgeeks.org/python-reshape-a-list-according-to-given-multi-list/
+    settings_iterator = iter(settings)
+    settings_chunked = [[next(settings_iterator) for _ in range(chunksize)] for __ in range(mpisize)]
 
-cb = fig.colorbar(cm.ScalarMappable(norm = None, cmap = "inferno_r"), ax = axs)
+# https://mpi4py.readthedocs.io/en/stable/tutorial.html > Scattering Python Arrays
+mychunk = comm.scatter(settings_chunked, root = 0)
+print(f"Rank {mpirank}: {mychunk}")
 
-# SET LABELS
-cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
-fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ($10^\\circ$ Separation) at varying amplitude $\\sigma$')
-fig.supxlabel('$x$ ($\\mu$m)')
-fig.supylabel('Propagation direction $z$ (mm)')
-# END SET LABELS
+mypotentials = []
+for mod_func, rng in mychunk:
+    print(f"Rank {mpirank}: Calculating for {mod_func}, {rng}...")
 
-# plt.tight_layout()
-plt.show()
-# plt.savefig("./generated/potential_static_varying_angles.eps", format = 'eps') # bbox_inches='tight'
+    intensities_1 = DipoleTrapLi.intensity_average(
+        x = points_beam1[:,0], y = points_beam1[:,1], z = points_beam1[:,2], 
+        power = power, wavelength = wavelength,
+        numsamples = t_samples,
+        modulation_function = mod_func,
+        deviation = rng * waist,
+        **beam_params[0]
+    )
+    intensities_2 = DipoleTrapLi.intensity_average(
+        x = points_beam2[:,0], y = points_beam2[:,1], z = points_beam2[:,2], 
+        power = power, wavelength = wavelength,
+        numsamples = t_samples,
+        modulation_function = mod_func,
+        deviation = rng * waist,
+        **beam_params[1]
+    )
+
+    potential_1 = DipoleTrapLi.potential(intensity = intensities_1, wavelength = wavelength)*1e27 # Turn into reasonable units
+    potential_2 = DipoleTrapLi.potential(intensity = intensities_2, wavelength = wavelength)*1e27
+    potentials = potential_1 + potential_2
+
+    assert isinstance(potentials, np.ndarray)
+    assert isinstance(potential_1, np.ndarray)
+    assert isinstance(potential_2, np.ndarray)
+
+    potentials_mk = DipoleTrapLi.trap_temperature(trap_depth = potentials*1e-27)*1e3
+    
+    assert isinstance(potentials_mk, np.ndarray)
+
+    # https://matplotlib.org/stable/gallery/images_contours_and_fields/contour_demo.html
+    potentials_for_contour_plotting = potentials_mk.reshape((numpoints_x, numpoints_z)).T
+    mypotentials.append(potentials_for_contour_plotting)
+
+    print(f"Rank {mpirank}: Calculating for {mod_func}, {rng}...Done")
+
+print(f"Rank {mpirank}: Calculation Done")
+comm.Barrier()
+
+allpotentials = np.array([])
+if mpirank == 0:
+    allpotentials = np.empty((mpisize, *np.shape(mypotentials)), dtype = np.float64)
+    print("Allpot shape: ", np.shape(allpotentials))
+
+print(f"Rank {mpirank}: {np.shape(mypotentials)}")
+
+comm.Gatherv(sendbuf = mypotentials, recvbuf = allpotentials, root = 0)
+
+if mpirank == 0:
+    minimum_potential = np.amin(allpotentials) # auto-flattens
+    maximum_potential = np.amax(allpotentials)
+
+    # https://stackoverflow.com/a/26553855
+    allpotentials = np.reshape(allpotentials, newshape = (-1, allpotentials.shape[-1]))
+
+    # PLOTTING
+    X, Z = np.meshgrid(x * 1e6, z * 1e3)
+    for i in range(nrows):
+        for j in range(ncols):
+            p = axs[i, j].pcolormesh(X, Z, allpotentials[i * nrows + j], \
+                cmap = "inferno_r", \
+                vmin = minimum_potential, \
+                vmax = maximum_potential, \
+                rasterized = True)
+
+            if i == 0:
+                axs[i, j].set_title(f"$\\sigma = {sweeping_range[j]}\\omega_0$")
+            if j == 0:
+                axs[i, j].set_ylabel(f"{modulation_function_names[i]}")
+
+    cb = fig.colorbar(cm.ScalarMappable(norm = None, cmap = "inferno_r"), ax = axs)
+
+    # SET LABELS
+    cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
+    fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ($10^\\circ$ Separation) at varying amplitude $\\sigma$')
+    fig.supxlabel('$x$ ($\\mu$m)')
+    fig.supylabel('Propagation direction $z$ (mm)')
+    # END SET LABELS
+
+    # plt.tight_layout()
+    plt.show()
+    # plt.savefig("./generated/potential_static_varying_angles.eps", format = 'eps') # bbox_inches='tight'
