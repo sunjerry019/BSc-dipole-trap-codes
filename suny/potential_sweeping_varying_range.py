@@ -5,6 +5,10 @@ import numpy as np
 from sympy import false
 from dipoletrapli import DipoleTrapLi, rotate_points, cartesian_product 
 
+# https://stackoverflow.com/a/4935945
+import matplotlib as mpl
+mpl.use('PDF')
+
 from matplotlib import rc
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -49,7 +53,7 @@ figwidth = 8; figheight = 4.8
 # begin = 1; end = nrows * ncols - 1
 sweeping_range = [0, 1, 2, 4]
 
-t_samples = 100
+t_samples = 200
 def sine_mod(t):
     return np.sin(2*np.pi*t)
 
@@ -175,13 +179,14 @@ if mpirank == 0:
     maximum_potential = np.amax(allpotentials)
 
     # https://stackoverflow.com/a/26553855
-    allpotentials = np.reshape(allpotentials, newshape = (-1, allpotentials.shape[-1]))
+    # Flatten the outermost dimension
+    allpotentials = np.reshape(allpotentials, newshape = (-1, *allpotentials.shape[2:]))
 
     # PLOTTING
     X, Z = np.meshgrid(x * 1e6, z * 1e3)
     for i in range(nrows):
         for j in range(ncols):
-            p = axs[i, j].pcolormesh(X, Z, allpotentials[i * nrows + j], \
+            p = axs[i, j].pcolormesh(X, Z, allpotentials[i * ncols + j], \
                 cmap = "inferno_r", \
                 vmin = minimum_potential, \
                 vmax = maximum_potential, \
@@ -197,10 +202,18 @@ if mpirank == 0:
     # SET LABELS
     cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
     fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ($10^\\circ$ Separation) at varying amplitude $\\sigma$')
-    fig.supxlabel('$x$ ($\\mu$m)')
-    fig.supylabel('Propagation direction $z$ (mm)')
+    try:
+        fig.supxlabel('$x$ ($\\mu$m)')
+        fig.supylabel('Propagation direction $z$ (mm)')
+    except AttributeError as e:
+        # https://stackoverflow.com/a/50610853
+        # axs[-1, 0].set_xlabel('.', color=(0, 0, 0, 0))
+        # axs[-1, 0].set_ylabel('.', color=(0, 0, 0, 0))
+        fig.text(0.43, 0.04, '$x$ ($\\mu$m)', va='center', ha='center', fontsize='large')
+        fig.text(0.025, 0.5, 'Propagation direction $z$ (mm)', va='center', ha='center', rotation='vertical', fontsize='large')
     # END SET LABELS
 
     # plt.tight_layout()
-    plt.show()
-    # plt.savefig("./generated/potential_static_varying_angles.eps", format = 'eps') # bbox_inches='tight'
+    # plt.show()
+    # plt.savefig("./sweeping_potential_2D.eps", format = 'eps') # bbox_inches='tight'
+    plt.savefig("./sweeping_potential_2D.pdf", format = 'pdf', dpi = 600)

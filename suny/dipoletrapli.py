@@ -245,7 +245,10 @@ class DipoleTrapLi():
             wavelength = wavelength,
             w_0 = w_0, z_0 = z_0, Msq = Msq)
 
-        integrated = scipy.integrate.simpson(y = f_of_t, x = ts)
+        try:
+            integrated = scipy.integrate.simpson(y = f_of_t, x = ts)
+        except AttributeError as e:
+            integrated = scipy.integrate.simps(y = f_of_t, x = ts)
         
         return integrated
 
