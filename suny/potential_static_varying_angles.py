@@ -95,14 +95,14 @@ maximum_potential = np.max(allpotentials_np)
 
 for i in range(nrows):
     for j in range(ncols):
-        print(f"Making colormesh for angle = {angle_between_beams[i * nrows + j]}...", end = '\r')
-        p = axs[i, j].pcolormesh(X, Z, allpotentials[i * nrows + j], \
+        print(f"Making colormesh for angle = {angle_between_beams[i * ncols + j]}...", end = '\r')
+        p = axs[i, j].pcolormesh(X, Z, allpotentials[i * ncols + j], \
             cmap = "inferno_r", \
             vmin = minimum_potential, \
             vmax = maximum_potential, \
             rasterized = True)
-        axs[i, j].set_title(f"$\\theta = {angle_between_beams[i * nrows + j]}^\\circ$")
-        print(f"Making colormesh for angle = {angle_between_beams[i * nrows + j]}...Done")
+        axs[i, j].set_title(f"$\\theta = {angle_between_beams[i * ncols + j]}^\\circ$")
+        print(f"Making colormesh for angle = {angle_between_beams[i * ncols + j]}...Done")
 
 cb = fig.colorbar(cm.ScalarMappable(norm = None, cmap = "inferno_r"), ax = axs)
 
