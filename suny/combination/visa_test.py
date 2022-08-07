@@ -3,7 +3,6 @@
 import pyvisa
 
 rm = pyvisa.ResourceManager()
-# rigol_session = rm.open_resource("USB0::0x1AB1::0x0642::DG1ZA233104002::INSTR") # Rigol DG1022
 ress = rm.list_resources()
 for res in ress:
     try:
