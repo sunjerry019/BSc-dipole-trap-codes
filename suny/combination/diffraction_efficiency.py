@@ -89,7 +89,7 @@ for freq in frequencies:
         agilent_session.write("OUTP:STAT OFF")
 
         mean = np.mean(power_meas_np)
-        dev  = np.std{power_meas_np}
+        dev  = np.std(power_meas_np)
 
         dtpt = [ freq, RFpower, mean, dev ]
         dtpt = [ str(x) for x in dtpt ]
