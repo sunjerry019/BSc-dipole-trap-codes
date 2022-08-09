@@ -9,8 +9,10 @@ import matplotlib.pyplot as plt
 import lmfit.models
 
 import scipy.signal
+import scipy.optimize
 
 import numpy as np
+import uncertainties
 
 ## SETTINGS
 nrows = 4; ncols = 1
@@ -120,15 +122,35 @@ for i, key in enumerate(keys):
     _result = model.fit(fit_power, _params, x = fit_freqs)
     results[key] = _result
 
-    # print(_result.fit_report())
 
-    # _freqs_fit = np.linspace(np.min(freqs), np.max(freqs), 1000)
-    # plt.scatter(freqs, power, label='data', marker = '+')
-    # plt.plot(_freqs_fit, _result.eval(x = _freqs_fit), 'r-', label='interpolated fit')
-    # plt.legend()
-    # plt.show()
-    # # plt.savefig(f'./tv1/peak_{np.around(p, decimals = 5)}.eps', format='eps')
-    # plt.clf()
+    _amplitude = uncertainties.ufloat(_result.params[f"{prefix}amplitude"].value, _result.params[f"{prefix}amplitude"].stderr)
+    _constant  = uncertainties.ufloat(_result.params[f"{prefix}c"].value, _result.params[f"{prefix}c"].stderr)
+
+    minus3db = _amplitude - 3 + _constant
+    print("-3dB point:", minus3db, "dBm")
+
+    def eval_func(x: np.ndarray | float) -> np.ndarray | float:
+        return _result.eval(x = x) - minus3db.nominal_value
+
+    # SOME ROOTFINDING ALGOS here
+    _left_res  = scipy.optimize.root(fun = eval_func, x0 = center1)
+    _right_res = scipy.optimize.root(fun = eval_func, x0 = center2)
+
+    _left, _right = _left_res.x, _right_res.x
+
+    bandwidth_plot_x = np.array([_left, _right])
+    bandwidth_plot_y = _result.eval(x = bandwidth_plot_x)
+
+    _freqs_fit = np.linspace(np.min(freqs), np.max(freqs), 1000)
+    plt.scatter(freqs, power, label='data', marker = '+')
+    plt.scatter(bandwidth_plot_x, bandwidth_plot_y, label = "Bandwidth", marker = "x")
+    plt.plot(_freqs_fit, _result.eval(x = _freqs_fit), 'r-', label='interpolated fit')
+    plt.legend()
+    plt.show()
+    # plt.savefig(f'./tv1/peak_{np.around(p, decimals = 5)}.eps', format='eps')
+    plt.clf()
+
+sys.exit()
 
 # PLOTTING BANDWIDTH
 keys_for_plotting = ['1kHz', '50kHz', '100kHz-30kHzBW', '400kHz-100kHzBW']
