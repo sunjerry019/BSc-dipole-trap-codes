@@ -56,7 +56,6 @@ for i, key in enumerate(keys):
 
     freqs = sweeping_freqs[key].DATA["A"]["FREQ"]
     power = sweeping_freqs[key].DATA["A"]["POWER"]
-    _freqs_fit = np.linspace(np.min(freqs), np.max(freqs), 1000)
 
     prefix = f"khz{khz}_"
     
@@ -119,16 +118,17 @@ for i, key in enumerate(keys):
     _params = model.make_params(**_params_dict)
 
     _result = model.fit(fit_power, _params, x = fit_freqs)
+    results[key] = _result
+
     # print(_result.fit_report())
 
-    plt.scatter(freqs, power, label='data', marker = '+')
-    plt.plot(_freqs_fit, _result.eval(x = _freqs_fit), 'r-', label='interpolated fit')
-    plt.legend()
-    plt.show()
-    # plt.savefig(f'./tv1/peak_{np.around(p, decimals = 5)}.eps', format='eps')
-    plt.clf()
-    
-sys.exit()
+    # _freqs_fit = np.linspace(np.min(freqs), np.max(freqs), 1000)
+    # plt.scatter(freqs, power, label='data', marker = '+')
+    # plt.plot(_freqs_fit, _result.eval(x = _freqs_fit), 'r-', label='interpolated fit')
+    # plt.legend()
+    # plt.show()
+    # # plt.savefig(f'./tv1/peak_{np.around(p, decimals = 5)}.eps', format='eps')
+    # plt.clf()
 
 # PLOTTING BANDWIDTH
 keys_for_plotting = ['1kHz', '50kHz', '100kHz-30kHzBW', '400kHz-100kHzBW']
