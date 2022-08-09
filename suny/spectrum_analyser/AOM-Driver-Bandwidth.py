@@ -38,8 +38,7 @@ keys = list(sweeping_freqs.keys())
 keys.sort(key = getNumFromKey)
 print(keys)
 
-# PLOT THE DATA HERE
-## Access the dictionary in the order of the sorted keys
+
 
 ## matplotlib settings
 rc('text', usetex = True)
@@ -47,11 +46,12 @@ rc('text.latex', preamble = r"\usepackage{libertine}")
 rc('font', size = 11, family = "Serif")
 ## END MPL Settings
 
-
+# PLOTTING BANDWIDTH
+keys_for_plotting = ['1kHz', '50kHz', '100kHz-30kHzBW', '400kHz-100kHzBW']
 if multiplot:
     fig, axs = plt.subplots(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
 
-    for i, key in enumerate(keys):
+    for i, key in enumerate(keys_for_plotting):
         data = sweeping_freqs[key]
         ax = axs[i // ncols, i % ncols]
         ax.scatter(data.DATA["A"]["FREQ"], data.DATA["A"]["POWER"], marker = "+", label = key)
@@ -63,9 +63,11 @@ if multiplot:
 else:
     fig, ax = plt.subplots(figsize = (figwidth, figheight))
     l = len(keys)
-    for i, key in enumerate(keys):
+    for i, key in enumerate(keys_for_plotting):
         j = l - i
         data = sweeping_freqs[key]
+
+        # PLOT THE DATA
         ax.scatter(data.DATA["A"]["FREQ"], data.DATA["A"]["POWER"] + j*offset, marker = "+", label = f"{getNumFromKey(key)} kHz Modulation")
 
     ax.set_xlabel("Frequency (MHz)")
