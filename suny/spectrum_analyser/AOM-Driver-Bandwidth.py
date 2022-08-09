@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
+import sys
 from anritsuData import AnritsuData
 import os, glob
 
 from matplotlib import rc
 import matplotlib.pyplot as plt
-import matplotlib.markers
+import lmfit.models
+
+import scipy.signal
+
+import numpy as np
 
 ## SETTINGS
 nrows = 4; ncols = 1
@@ -15,6 +20,12 @@ figwidth = 5.5; figheight = 6
 multiplot = False
 offset    = 90 # dBm
 ## / SETTINGS
+
+## matplotlib settings
+rc('text', usetex = True)
+rc('text.latex', preamble = r"\usepackage{libertine}")
+rc('font', size = 11, family = "Serif")
+## END MPL Settings
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -36,15 +47,88 @@ def getNumFromKey(key: str) -> int | float:
 ## sort the keys
 keys = list(sweeping_freqs.keys())
 keys.sort(key = getNumFromKey)
-print(keys)
 
+models  = {}
+results = {}
 
+for i, key in enumerate(keys):
+    khz = getNumFromKey(key)
 
-## matplotlib settings
-rc('text', usetex = True)
-rc('text.latex', preamble = r"\usepackage{libertine}")
-rc('font', size = 11, family = "Serif")
-## END MPL Settings
+    freqs = sweeping_freqs[key].DATA["A"]["FREQ"]
+    power = sweeping_freqs[key].DATA["A"]["POWER"]
+    _freqs_fit = np.linspace(np.min(freqs), np.max(freqs), 1000)
+
+    prefix = f"khz{khz}_"
+    
+    baseline = lmfit.models.ConstantModel(prefix = prefix)
+    rectangular_func = lmfit.models.RectangleModel(prefix = prefix, form = 'erf')
+
+    model = baseline + rectangular_func
+
+    models[key] = model
+
+    minimum = np.min(power)
+    maximum = np.max(power)
+    middle  = np.average([minimum, maximum])
+
+    center1 = None
+    center1_idx = 0
+    center2 = None
+    center2_idx = 0
+
+    assert len(power) == len(freqs)
+    for idx in range(len(power)):
+        if center1 is None and power[idx] >= middle:
+            # Gets the first element that is >= middle
+            center1 = freqs[idx]
+            center1_idx = idx
+            break
+        
+    for idx in reversed(range(len(power))):
+        if center2 is None and power[idx] >= middle:
+            # Gets the first element in the other direction that is >= middle
+            center2 = freqs[idx]
+            center2_idx = idx
+            break
+
+    # SMOOTHING THE DATA
+    fit_freqs = freqs
+    fit_power = power
+    while True:
+        peaks, properties = scipy.signal.find_peaks(x = -fit_power[center1_idx:center2_idx], threshold = (maximum - minimum)/50)
+        peaks = peaks + center1_idx
+        
+        fit_freqs = np.delete(fit_freqs, peaks)
+        fit_power = np.delete(fit_power, peaks)
+
+        correction = np.count_nonzero(peaks <= center1_idx)
+        center1_idx -= correction
+        correction = np.count_nonzero(peaks <= center2_idx)
+        center2_idx -= correction
+
+        if len(peaks) == 0:
+            break
+
+    _params_dict = {
+        f"{prefix}c"        : minimum,
+        f"{prefix}amplitude": maximum - minimum,
+        f"{prefix}center1"  : center1,
+        f"{prefix}center2"  : center2,
+    }
+
+    _params = model.make_params(**_params_dict)
+
+    _result = model.fit(fit_power, _params, x = fit_freqs)
+    # print(_result.fit_report())
+
+    plt.scatter(freqs, power, label='data', marker = '+')
+    plt.plot(_freqs_fit, _result.eval(x = _freqs_fit), 'r-', label='interpolated fit')
+    plt.legend()
+    plt.show()
+    # plt.savefig(f'./tv1/peak_{np.around(p, decimals = 5)}.eps', format='eps')
+    plt.clf()
+    
+sys.exit()
 
 # PLOTTING BANDWIDTH
 keys_for_plotting = ['1kHz', '50kHz', '100kHz-30kHzBW', '400kHz-100kHzBW']
