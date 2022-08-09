@@ -8,9 +8,12 @@ import matplotlib.pyplot as plt
 import matplotlib.markers
 
 ## SETTINGS
-nrows = 2; ncols = 2
-figwidth = 8; figheight = 4 
+nrows = 4; ncols = 1
+figwidth = 5.5; figheight = 6
+
+# rolcol(2,2), figsize(8,4)
 multiplot = False
+offset    = 90 # dBm
 ## / SETTINGS
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
@@ -50,7 +53,7 @@ if multiplot:
 
     for i, key in enumerate(keys):
         data = sweeping_freqs[key]
-        ax = axs[i // nrows, i % nrows]
+        ax = axs[i // ncols, i % ncols]
         ax.scatter(data.DATA["A"]["FREQ"], data.DATA["A"]["POWER"], marker = "+", label = key)
         ax.set_title(key)
         ax.set_xlim([70,89])
@@ -59,12 +62,18 @@ if multiplot:
     fig.supylabel("Power after attenuation (dBm)")
 else:
     fig, ax = plt.subplots(figsize = (figwidth, figheight))
-    for key in keys:
+    l = len(keys)
+    for i, key in enumerate(keys):
+        j = l - i
         data = sweeping_freqs[key]
-        ax.scatter(data.DATA["A"]["FREQ"], data.DATA["A"]["POWER"], marker = "+", label = key)
-    ax.legend()
+        ax.scatter(data.DATA["A"]["FREQ"], data.DATA["A"]["POWER"] + j*offset, marker = "+", label = f"{getNumFromKey(key)} kHz Modulation")
+
     ax.set_xlabel("Frequency (MHz)")
     ax.set_ylabel("Power after attenuation (dBm)")
+    fig.suptitle("\\shortstack{Output RF Bandwidth from POS-150+ AOM Driver\\\\at different modulation frequencies}")
+
+    ax.legend(loc='lower center', bbox_to_anchor = (0.5, -0.3), ncol=2, fancybox=True)
+    fig.subplots_adjust(bottom=0.25) # https://www.adamsmith.haus/python/answers/how-to-place-a-legend-below-the-axes-in-matplotlib-in-python
     plt.xlim([70,89])
 
 plt.show()
