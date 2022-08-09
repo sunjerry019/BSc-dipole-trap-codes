@@ -27,7 +27,6 @@ class AnritsuData():
 
         if not no_process:
             self.processFile()
-            print(self.DATA)
 
     def processFile(self) -> None:
         line_no = 0
@@ -56,7 +55,7 @@ class AnritsuData():
             if line_no > 9:
                 if line.startswith("# Begin TRACE"):
                     trace_id = line[14:15]
-                    print(f"Trace {trace_id}")
+                    # print(f"Trace {trace_id}")
 
                     # PROCESS TRACE SETUP
                     if not trace_setup and line.endswith("Setup"):
