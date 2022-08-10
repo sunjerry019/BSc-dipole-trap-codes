@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 from anritsuData import AnritsuData
 import os, glob
 
@@ -37,7 +36,7 @@ base_dir = os.path.dirname(os.path.realpath(__file__))
 ## READ IN THE DATA
 sweeping_freqs = {}
 
-for name in glob.glob(os.path.join(base_dir, "data", "*.csv")):
+for name in glob.glob(os.path.join(base_dir, "2022-08-02_data", "*.csv")):
     description = name.split(os.path.sep)[-1][15:].split(".")[0]
 
     # store into dictionary with descrption as key
