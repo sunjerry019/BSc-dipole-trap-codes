@@ -132,13 +132,31 @@ for i, key in enumerate(keys):
     def eval_func(x: np.ndarray | float) -> np.ndarray | float:
         return _result.eval(x = x) - minus3db.nominal_value
 
+    def eval_func_top(x: np.ndarray | float) -> np.ndarray | float:
+        return _result.eval(x = x) - minus3db.nominal_value + minus3db.std_dev
+    def eval_func_bottom(x: np.ndarray | float) -> np.ndarray | float:
+        return _result.eval(x = x) - minus3db.nominal_value - minus3db.std_dev
+
     # SOME ROOTFINDING ALGOS here
     _left_res  = scipy.optimize.root(fun = eval_func, x0 = center1)
+    _left_res_top  = scipy.optimize.root(fun = eval_func_top, x0 = _left_res.x)
+    _left_res_bottom  = scipy.optimize.root(fun = eval_func_bottom, x0 = _left_res.x)
+
     _right_res = scipy.optimize.root(fun = eval_func, x0 = center2)
+    _right_res_top = scipy.optimize.root(fun = eval_func_top, x0 = _right_res.x)
+    _right_res_bottom = scipy.optimize.root(fun = eval_func_bottom, x0 = _right_res.x)
 
-    _left, _right = _left_res.x, _right_res.x
+    _left_res_dev = np.average(np.abs(np.array([_left_res_top.x, _left_res_bottom.x]) - _left_res.x))
+    _right_res_dev = np.average(np.abs(np.array([_right_res_top.x, _right_res_bottom.x]) - _right_res.x))
 
-    bandwidth_plot_x = np.array([_left, _right])
+    _left = uncertainties.ufloat(_left_res.x, _left_res_dev)
+    _right = uncertainties.ufloat(_right_res.x, _right_res_dev)
+
+    bandwidth = _right - _left
+
+    print("bandwidth", bandwidth, "dBm")
+
+    bandwidth_plot_x = np.array([_left.nominal_value, _right.nominal_value])
     bandwidth_plot_y = _result.eval(x = bandwidth_plot_x)
 
     _freqs_fit = np.linspace(np.min(freqs), np.max(freqs), 1000)
