@@ -17,7 +17,7 @@ import uncertainties
 ## SETTINGS
 nrows = 4; ncols = 1
 figwidth = 5.5; figheight = 6.5
-bw_figwidth = 6; bw_figheight = 5
+BW_figwidth = 7; BW_figheight = 4
 
 SKIP_4_BW_PLOT = True
 
@@ -28,7 +28,7 @@ offset    = 90 # dBm
 
 ## matplotlib settings
 rc('text', usetex = True)
-rc('text.latex', preamble = r"\usepackage{libertine}")
+rc('text.latex', preamble = r"\usepackage{libertine}\usepackage{nicefrac}")
 rc('font', size = 11, family = "Serif")
 ## END MPL Settings
 
@@ -141,7 +141,7 @@ for i, key in enumerate(keys):
 
     def eval_func_top(x: np.ndarray | float) -> np.ndarray | float:
         del_y = _result.eval_uncertainty(x = x)
-        return _result.eval(x = x) + del_y - minus3db.nominal_value +  + minus3db.std_dev
+        return _result.eval(x = x) + del_y - minus3db.nominal_value + minus3db.std_dev
     def eval_func_bottom(x: np.ndarray | float) -> np.ndarray | float:
         del_y = _result.eval_uncertainty(x = x)
         return _result.eval(x = x) - del_y - minus3db.nominal_value - minus3db.std_dev
@@ -239,8 +239,45 @@ if not SKIP_4_BW_PLOT:
     plt.clf()
 
 # PLOTTING THE BANDWIDTH vs FREQ
-BW_freqs = np.array([getNumFromKey(k) for k in keys]) # in kHz
+BW_modfreqs = np.array([getNumFromKey(k) for k in keys]) # in kHz
 BW_bandwidths = np.array([bandwidths[k].nominal_value for k in keys]) # in MHz
 BW_bandwidths_err = np.array([bandwidths[k].std_dev for k in keys]) # in MHz
 
+# FIT AN EXXPONENTIAL
+BW_model = lmfit.models.ExponentialModel() + lmfit.models.ConstantModel()
 
+BW_params = BW_model.make_params()
+BW_result = BW_model.fit(BW_bandwidths, BW_params, x = BW_modfreqs, weights = 1.0/BW_bandwidths_err)
+
+BW_A   = np.around(BW_result.params["amplitude"].value, decimals = 3)
+BW_tau = np.around(BW_result.params["decay"].value, decimals = 3)
+BW_c   = np.around(BW_result.params["c"].value, decimals = 3)
+
+BW_fit_x = np.linspace(start = np.min(BW_modfreqs), stop = np.max(BW_modfreqs), num = 1000)
+BW_fit_y = BW_result.eval(x = BW_fit_x)
+BW_it_y_delta = BW_result.eval_uncertainty(x = BW_fit_x)
+
+fig, ax = plt.subplots(figsize = (BW_figwidth, BW_figheight))
+# https://stackoverflow.com/a/68160709
+ax.set_title("\\shortstack{Change in 3dB-Bandwidth of RF Output of POS-150+\\\\Voltage-Controlled Oscillator AOM Driver}")
+ax.errorbar(BW_modfreqs, BW_bandwidths, BW_bandwidths_err, capsize = 3, fmt = ' ', marker = 'x', color = "tab:blue", ecolor = "tab:blue", label = "Data", markersize = 5, elinewidth = 1)
+ax.plot(BW_fit_x, BW_fit_y, color = "tab:red", label = f"${BW_A}\\exp\\left(-\\nicefrac{{f\\!}}{{{BW_tau}}}\\right) + {BW_c}$")
+ax.fill_between(BW_fit_x, BW_fit_y - BW_it_y_delta, BW_fit_y + BW_it_y_delta, color='mistyrose')
+ax.set_ylabel("RF Output Bandwidth (MHz)")
+ax.set_xlabel("Modulation Frequency $f$ (kHz)")
+
+BW_tau_uf = uncertainties.ufloat(BW_result.params["decay"].value, BW_result.params["decay"].stderr)
+BW_t_half = BW_tau_uf * np.log(2)
+
+print(f"Mean lifetime = {BW_tau_uf.nominal_value} +/- {BW_tau_uf.std_dev}")
+print(f"Halflife      = {BW_t_half.nominal_value} +/- {BW_t_half.std_dev}")
+
+# https://www.statology.org/matplotlib-legend-order/
+handles, labels = plt.gca().get_legend_handles_labels()
+order = [1,0]
+
+ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+# ax.set_yscale("log")
+# ax.set_xlim([0,100])
+# ax.set_ylim([5,15])
+plt.show()
