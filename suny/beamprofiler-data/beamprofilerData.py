@@ -5,8 +5,11 @@ import matplotlib.pyplot as plt
 import scipy.ndimage
 
 class BeamprofilerImageData():
-    def __init__(self, datafile: str) -> None:
+    def __init__(self, datafile: str, autorotate: bool = True) -> None:
         self.DATA = np.loadtxt(datafile, delimiter = ',')
+        
+        if autorotate:
+            self.rotateImage(degrees = self.getAngleForRotation())
 
     def getAngleForRotation(self) -> float:
         # To obtain the angle, we use https://alyssaq.github.io/2015/computing-the-axes-or-orientation-of-a-blob/#2-Raw-image-moments
@@ -60,5 +63,4 @@ if __name__ == "__main__":
     import os
     base_dir = os.path.dirname(os.path.realpath(__file__))
     x = BeamprofilerImageData(datafile = os.path.join(base_dir, "./2022-08-05_High Frequency Painting/100kHz_+-1.250.0V_10MHzModulation.csv"))
-    x.rotateImage(degrees = x.getAngleForRotation())
     x.displayImage()
