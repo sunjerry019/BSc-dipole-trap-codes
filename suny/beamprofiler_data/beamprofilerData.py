@@ -46,7 +46,7 @@ class BeamprofilerImageData():
         largest_eig_idx = np.argmax(eigvals)
         # We only look at the eigenvector with the largest eigenvalue
         _x, _y = eigvecs[largest_eig_idx]
-        theta = np.rad2deg(np.arctan(_x/_y)) + 90 # small adjustment
+        theta = np.rad2deg(np.arctan(_x/_y)) + 90 + 1 # small adjustment
 
         return theta
 
@@ -64,8 +64,8 @@ class BeamprofilerImageData():
         n_x, n_y = np.shape(biggerImage)
         o_x, o_y = np.shape(self.DATA)
 
-        left = (n_x - o_x) // 2
-        top  = (n_y - o_y) // 2
+        left = int(np.ceil((n_x - o_x) / 2))
+        top  = int(np.ceil((n_y - o_y) / 2))
 
         biggerImage[left:left+o_x, top:top+o_y] = self.DATA
         self.DATA = biggerImage
