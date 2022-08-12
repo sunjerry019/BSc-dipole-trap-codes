@@ -19,13 +19,18 @@ cd ..
 python3 ./final_sweeping.py
 
 DONE=0
-while [ $DONE -neq 1 ]
+while [ $DONE -ne 1 ]
 do
+    echo "Polling Physik Slurm"
     DONE=$(ssh -i ~/.ssh/lrz_ed25519 Yudong.Sun@physik.ssh.yudong.dev "/opt/slurm/bin/squeue -u Yudong.Sun" | wc -l)
+    sleep 1
 done
+echo "Polling Physik Slurm DONE"
 scp -i ~/.ssh/lrz_ed25519 Yudong.Sun@physik.ssh.yudong.dev:~/FermiQP/simulations/sweeping_potential_2D.pdf ./simulations/generated/
 
 mv ./simulations/generated/* 0_allplots/
-mv ./spectrum_analyser/generated* 0_allplots/
+mv ./spectrum_analyser/generated/* 0_allplots/
 
 python3 ./final_sweeping.py
+
+echo "ALL PLOTS GENERATED"

@@ -103,4 +103,4 @@ plotter.fig.subplots_adjust(right=0.89) # Anchor of the right side
 plotter.fig.suptitle("High Frequency Modulated Painting Dipole Trap")
 
 # plotter.show()
-plotter.savefig(os.path.join(base_dir, "0_allplots", "high-freq-sweeping.eps"), backend = "eps")
+plotter.savefig(os.path.join(base_dir, "0_allplots", "high-freq-sweeping.eps"), backend = "ps")

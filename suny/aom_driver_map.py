@@ -4,18 +4,11 @@ import sys
 import pandas as pd
 import os
 
-from matplotlib import rc
-import matplotlib.pyplot as plt
+from plotter import Plotter
 
 from spectrum_analyser.anritsuData import AnritsuData
 
 import numpy as np
-
-## matplotlib settings
-rc('text', usetex = True)
-rc('text.latex', preamble = r"\usepackage{libertine}\usepackage{nicefrac}")
-rc('font', size = 11, family = "Serif")
-## END MPL Settings
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
 data_file = os.path.join(base_dir, "aom_driver_characterisation", "Data-2022-08-08_100328.dat")
