@@ -17,6 +17,7 @@ python3 AOM-Driver-Bandwidth.py
 cd ..
 
 python3 ./final_sweeping.py
+python3 ./final_sweeping_100kHz.py
 
 DONE=0
 while [ $DONE -ne 1 ]
