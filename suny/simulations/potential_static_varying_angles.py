@@ -4,8 +4,9 @@ import numpy as np
 from sympy import false
 from dipoletrapli import DipoleTrapLi, rotate_points, cartesian_product 
 
-from matplotlib import rc
-import matplotlib.pyplot as plt
+import __init__
+
+from plotter import Plotter
 import matplotlib.cm as cm
 
 beam_params = [
@@ -33,12 +34,6 @@ begin = 5; end   = 20
 figwidth = 8; figheight = 4.8
 # END SETTINGS
 
-## matplotlib settings
-rc('text', usetex = True)
-rc('text.latex', preamble = r"\usepackage{libertine}")
-rc('font', size = 11, family = "Serif")
-## END MPL Settings
-
 # TO BE VARIED
 angle_between_beams = np.linspace(start = begin, stop = end, num = nrows * ncols, endpoint = True) # degrees
 
@@ -51,8 +46,8 @@ points = cartesian_product(x, y, z)
 
 X, Z = np.meshgrid(x * 1e6, z * 1e3)
 
-fig, axs = plt.subplots(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
-assert isinstance(axs, np.ndarray)
+plotter = Plotter(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
+assert isinstance(plotter.axs, np.ndarray)
 
 allpotentials = []
 
@@ -96,23 +91,25 @@ maximum_potential = np.max(allpotentials_np)
 for i in range(nrows):
     for j in range(ncols):
         print(f"Making colormesh for angle = {angle_between_beams[i * ncols + j]}...", end = '\r')
-        p = axs[i, j].pcolormesh(X, Z, allpotentials[i * ncols + j], \
-            cmap = "inferno_r", \
+        p = plotter.axs[i, j].pcolormesh(X, Z, allpotentials[i * ncols + j], \
+            cmap = plotter.COLORMAP_R, \
             vmin = minimum_potential, \
             vmax = maximum_potential, \
             rasterized = True)
-        axs[i, j].set_title(f"$\\theta = {angle_between_beams[i * ncols + j]}^\\circ$")
+        plotter.axs[i, j].set_title(f"$\\theta = {angle_between_beams[i * ncols + j]}^\\circ$")
         print(f"Making colormesh for angle = {angle_between_beams[i * ncols + j]}...Done")
 
-cb = fig.colorbar(cm.ScalarMappable(norm = None, cmap = "inferno_r"), ax = axs)
+cb = plotter.fig.colorbar(cm.ScalarMappable(norm = None, cmap = plotter.COLORMAP_R), ax = plotter.axs)
 
 # SET LABELS
 cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
-fig.suptitle(f'${power}$ W Static Beam Trap Depth at varying beam separation $\\theta$')
-fig.supxlabel('$x$ ($\\mu$m)')
-fig.supylabel('Propagation direction $z$ (mm)')
+plotter.fig.suptitle(f'${power}$ W Static Beam Trap Depth at varying beam separation $\\theta$')
+plotter.fig.supxlabel('$x$ ($\\mu$m)')
+plotter.fig.supylabel('Propagation direction $z$ (mm)')
 # END SET LABELS
 
 # plt.tight_layout()
-plt.show()
-# plt.savefig("./generated/potential_static_varying_angles.eps", format = 'eps') # bbox_inches='tight'
+# plotter.show()
+import os
+base_dir = os.path.dirname(os.path.realpath(__file__))
+plotter.savefig(os.path.join(base_dir, "generated/potential_static_varying_angles.pdf"), format = 'pdf', dpi = 600) # bbox_inches='tight'
