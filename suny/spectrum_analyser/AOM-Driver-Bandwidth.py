@@ -275,4 +275,4 @@ plotter2.axs.legend([handles[idx] for idx in order],[labels[idx] for idx in orde
 # ax.set_xlim([0,100])
 # ax.set_ylim([5,15])
 # plotter2.show()
-plotter2.savefig(os.path.join(base_dir, "generated", "POS150+bandwidth_change.eps"), backend = "ps")
+plotter2.savefig(os.path.join(base_dir, "generated", "POS150+bandwidth_change.pdf"), backend = "pdf")

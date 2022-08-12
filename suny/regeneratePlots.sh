@@ -31,6 +31,4 @@ scp -i ~/.ssh/lrz_ed25519 Yudong.Sun@physik.ssh.yudong.dev:~/FermiQP/simulations
 mv ./simulations/generated/* 0_allplots/
 mv ./spectrum_analyser/generated/* 0_allplots/
 
-python3 ./final_sweeping.py
-
 echo "ALL PLOTS GENERATED"
