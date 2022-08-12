@@ -6,11 +6,17 @@ scp -i ~/.ssh/lrz_ed25519 ./simulations/dipoletrapli.py Yudong.Sun@physik.ssh.yu
 scp -i ~/.ssh/lrz_ed25519 ./plotter.py Yudong.Sun@physik.ssh.yudong.dev:~/FermiQP/simulations/
 ssh -i ~/.ssh/lrz_ed25519 Yudong.Sun@physik.ssh.yudong.dev "/opt/slurm/bin/sbatch -p cip ~/FermiQP/simulations/slurm_potential_sweeping_varying_range.sh"
 
-python3 ./simulations/potential_static_varying_angles.py
-python3 ./simulations/potential_static.py
-python3 ./simulations/potential_sweeping.py
+cd ./simulations/
+python3 potential_static_varying_angles.py
+python3 potential_static.py
+python3 potential_sweeping.py
+cd ..
 
-python3 ./
+cd ./spectrum_analyser
+python3 AOM-Driver-Bandwidth.py
+cd ..
+
+python3 ./final_sweeping.py
 
 DONE=0
 while [ $DONE -neq 1 ]
@@ -20,5 +26,6 @@ done
 scp -i ~/.ssh/lrz_ed25519 Yudong.Sun@physik.ssh.yudong.dev:~/FermiQP/simulations/sweeping_potential_2D.pdf ./simulations/generated/
 
 mv ./simulations/generated/* 0_allplots/
+mv ./spectrum_analyser/generated* 0_allplots/
 
 python3 ./final_sweeping.py
