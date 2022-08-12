@@ -4,21 +4,14 @@ from spectrum_analyser.anritsuData import AnritsuData
 from beamprofiler_data.beamprofilerData import BeamprofilerImageData
 import os
 
-from matplotlib import rc
-import matplotlib.pyplot as plt
+from plotter import Plotter
 import matplotlib_scalebar.scalebar
 
 import numpy as np
 
-## matplotlib settings
-rc('text', usetex = True)
-rc('text.latex', preamble = r"\usepackage{libertine}\usepackage{nicefrac}")
-rc('font', size = 11, family = "Serif")
-## END MPL Settings
-
 # SETTINGS
 plotting_order = ["100 kHz", "2.1 MHz", "3.4 MHz"]
-fig, axs = plt.subplots(nrows = 3, ncols = 3, sharex = "col", squeeze = False, figsize = (10, 5))
+plotter = Plotter(nrows = 3, ncols = 3, sharex = "col", squeeze = False, figsize = (10, 5))
 onepixel = 5.2e-6 # in meters
 # / SETTINGS
 
@@ -65,17 +58,17 @@ for i, key in enumerate(plotting_order):
     # PLOT THE SPECTRUM
     _y = AnritsuData.dBmToWatt(data = spect_files[key].DATA["A"]["POWER"])
     _y = _y / max_specpower
-    axs[i, 0].plot(spect_files[key].DATA["A"]["FREQ"], _y, label = key, color = "firebrick", linewidth = 1)
-    axs[i, 0].set_xlim([60,100])
+    plotter.axs[i, 0].plot(spect_files[key].DATA["A"]["FREQ"], _y, label = key, color = "firebrick", linewidth = 1)
+    plotter.axs[i, 0].set_xlim([60,100])
     # axs[i, 0].set_ylim([0, 1])
     # axs[i, 0].plot(spect_files[key].DATA["A"]["FREQ"], spect_files[key].DATA["A"]["POWER"], label = key)
 
     # PLOT THE IMAGE
-    axs[i, 1].imshow(image_files[key].DATA, cmap = "inferno")
+    plotter.axs[i, 1].imshow(image_files[key].DATA, cmap = plotter.COLORMAP)
     scalebar = matplotlib_scalebar.scalebar.ScaleBar(onepixel, location = "lower left") # 1 pixel = 5.2 micrometer
-    axs[i, 1].add_artist(scalebar)
-    axs[i, 1].axes.xaxis.set_visible(False)
-    axs[i, 1].axes.yaxis.set_visible(False)
+    plotter.axs[i, 1].add_artist(scalebar)
+    plotter.axs[i, 1].axes.xaxis.set_visible(False)
+    plotter.axs[i, 1].axes.yaxis.set_visible(False)
 
     # PLOT THE HORIZONTAL CUT
     height, width = image_files[key].DATA.shape
@@ -87,26 +80,27 @@ for i, key in enumerate(plotting_order):
     schnitt_y = schnitt_y / max_intensity
 
     # TODO QUESTION: SHOULD I FIT SOMETHING OVER THIS?
-    axs[i, 2].plot(schnitt_x, schnitt_y, color = "teal", linewidth = 1)
-    axs[i, 2].set_ylim([0,1.1])
+    plotter.axs[i, 2].plot(schnitt_x, schnitt_y, color = "teal", linewidth = 1)
+    plotter.axs[i, 2].set_ylim([0,1.1])
 
-axs[0,2].set_title("Horizontal Cut")
-axs[2,2].set_xlabel("$x$-Position ($\\mu$m)")
-axs[1,2].set_ylabel("Normalised Intensity")
+plotter.axs[0,2].set_title("Horizontal Cut")
+plotter.axs[2,2].set_xlabel("$x$-Position ($\\mu$m)")
+plotter.axs[1,2].set_ylabel("Normalised Intensity")
 
-axs[0,1].set_title("CCD Image")
-# axs[2,1].set_xlabel("$x$-Position")
-# axs[1,1].set_ylabel("$y$ Position")
+plotter.axs[0,1].set_title("CCD Image")
+# plotter.axs[2,1].set_xlabel("$x$-Position")
+# plotter.axs[1,1].set_ylabel("$y$ Position")
 
-axs[0,0].set_title("Output Spectrum")
-axs[2,0].set_xlabel("Frequency $f$ (MHz)")
-axs[1,0].set_ylabel("Normalised Power")
+plotter.axs[0,0].set_title("Output Spectrum")
+plotter.axs[2,0].set_xlabel("Frequency $f$ (MHz)")
+plotter.axs[1,0].set_ylabel("Normalised Power")
 
-fig.text(0.945, 0.76, "\\shortstack{$0.1$ MHz\\\\Modulation}", va='center', ha='center', rotation='horizontal', fontsize='large')
-fig.text(0.945, 0.5, "\\shortstack{$2.1$ MHz\\\\Modulation}", va='center', ha='center', rotation='horizontal', fontsize='large')
-fig.text(0.945, 0.23, "\\shortstack{$3.4$ MHz\\\\Modulation}", va='center', ha='center', rotation='horizontal', fontsize='large')
-fig.subplots_adjust(right=0.89) # Anchor of the right side
+plotter.fig.text(0.945, 0.76, "\\shortstack{$0.1$ MHz\\\\Modulation}", va='center', ha='center', rotation='horizontal', fontsize='large')
+plotter.fig.text(0.945, 0.5, "\\shortstack{$2.1$ MHz\\\\Modulation}", va='center', ha='center', rotation='horizontal', fontsize='large')
+plotter.fig.text(0.945, 0.23, "\\shortstack{$3.4$ MHz\\\\Modulation}", va='center', ha='center', rotation='horizontal', fontsize='large')
+plotter.fig.subplots_adjust(right=0.89) # Anchor of the right side
 
-fig.suptitle("High Frequency Modulated Painting Dipole Trap")
+plotter.fig.suptitle("High Frequency Modulated Painting Dipole Trap")
 
-plt.show()
+# plotter.show()
+plotter.savefig(os.path.join(base_dir, "0_allplots", "high-freq-sweeping.pdf"), backend = "pdf")

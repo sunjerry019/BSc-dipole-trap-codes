@@ -5,12 +5,16 @@ import numpy as np
 from sympy import false
 from dipoletrapli import DipoleTrapLi, rotate_points, cartesian_product 
 
+try:
+    from plotter import Plotter
+except ModuleNotFoundError:
+    import __init__
+    from plotter import Plotter
+
 # https://stackoverflow.com/a/4935945
 import matplotlib as mpl
 mpl.use('PDF')
 
-from matplotlib import rc
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 from mpi4py import MPI
@@ -69,18 +73,12 @@ angle_between_beams = 10
 num_elements = numpoints_x * numpoints_y * numpoints_z
 
 ## GLOBAL SETTINGS
-fig, axs = None, np.array([])
 x, y, z  = 0, 0, 0
 
 if mpirank == 0:
-    ## matplotlib settings
-    rc('text', usetex = True)
-    rc('text.latex', preamble = r"\usepackage{libertine}")
-    rc('font', size = 11, family = "Serif")
-    ## END MPL Settings
+    plotter = Plotter(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
 
-    fig, axs = plt.subplots(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
-    assert isinstance(axs, np.ndarray)
+    assert isinstance(plotter.axs, np.ndarray)
 
     # We generate in the x-z plane
     x = np.linspace(start = -150, stop = 150, num = numpoints_x, endpoint = True, dtype = np.float64) * 1e-6 # 5000
@@ -186,34 +184,34 @@ if mpirank == 0:
     X, Z = np.meshgrid(x * 1e6, z * 1e3)
     for i in range(nrows):
         for j in range(ncols):
-            p = axs[i, j].pcolormesh(X, Z, allpotentials[i * ncols + j], \
-                cmap = "inferno_r", \
+            p = plotter.axs[i, j].pcolormesh(X, Z, allpotentials[i * ncols + j], \
+                cmap = plotter.COLORMAP_R, \
                 vmin = minimum_potential, \
                 vmax = maximum_potential, \
                 rasterized = True)
 
             if i == 0:
-                axs[i, j].set_title(f"$\\sigma = {sweeping_range[j]}\\omega_0$")
+                plotter.axs[i, j].set_title(f"$\\sigma = {sweeping_range[j]}\\omega_0$")
             if j == 0:
-                axs[i, j].set_ylabel(f"{modulation_function_names[i]}")
+                plotter.axs[i, j].set_ylabel(f"{modulation_function_names[i]}")
 
-    cb = fig.colorbar(cm.ScalarMappable(norm = None, cmap = "inferno_r"), ax = axs)
+    cb = plotter.fig.colorbar(cm.ScalarMappable(norm = None, cmap = plotter.COLORMAP_R), ax = plotter.axs)
 
     # SET LABELS
     cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
-    fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ($10^\\circ$ Separation) at varying amplitude $\\sigma$')
+    plotter.fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ($10^\\circ$ Separation) at varying amplitude $\\sigma$')
     try:
-        fig.supxlabel('$x$ ($\\mu$m)')
-        fig.supylabel('Propagation direction $z$ (mm)')
+        plotter.fig.supxlabel('$x$ ($\\mu$m)')
+        plotter.fig.supylabel('Propagation direction $z$ (mm)')
     except AttributeError as e:
         # https://stackoverflow.com/a/50610853
         # axs[-1, 0].set_xlabel('.', color=(0, 0, 0, 0))
         # axs[-1, 0].set_ylabel('.', color=(0, 0, 0, 0))
-        fig.text(0.43, 0.04, '$x$ ($\\mu$m)', va='center', ha='center', fontsize='large')
-        fig.text(0.025, 0.5, 'Propagation direction $z$ (mm)', va='center', ha='center', rotation='vertical', fontsize='large')
+        plotter.fig.text(0.43, 0.04, '$x$ ($\\mu$m)', va='center', ha='center', fontsize='large')
+        plotter.fig.text(0.025, 0.5, 'Propagation direction $z$ (mm)', va='center', ha='center', rotation='vertical', fontsize='large')
     # END SET LABELS
 
     # plt.tight_layout()
     # plt.show()
     # plt.savefig("./sweeping_potential_2D.eps", format = 'eps') # bbox_inches='tight'
-    plt.savefig("./sweeping_potential_2D.pdf", format = 'pdf', dpi = 600)
+    plotter.savefig("./sweeping_potential_2D.pdf", format = 'pdf', dpi = 600)

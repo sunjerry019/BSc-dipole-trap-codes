@@ -3,8 +3,9 @@
 from anritsuData import AnritsuData
 import os, glob
 
-from matplotlib import rc
-import matplotlib.pyplot as plt
+import __init__
+from plotter import Plotter
+
 import lmfit.models
 
 import scipy.signal
@@ -18,18 +19,12 @@ nrows = 4; ncols = 1
 figwidth = 5.5; figheight = 6.5
 BW_figwidth = 7; BW_figheight = 4
 
-SKIP_4_BW_PLOT = True
+SKIP_4_BW_PLOT = False
 
 # rolcol(2,2), figsize(8,4)
 multiplot = False
 offset    = 90 # dBm
 ## / SETTINGS
-
-## matplotlib settings
-rc('text', usetex = True)
-rc('text.latex', preamble = r"\usepackage{libertine}\usepackage{nicefrac}")
-rc('font', size = 11, family = "Serif")
-## END MPL Settings
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -185,20 +180,20 @@ for i, key in enumerate(keys):
 if not SKIP_4_BW_PLOT:
     keys_for_plotting = ['1kHz', '50kHz', '100kHz-30kHzBW', '400kHz-100kHzBW']
     if multiplot:
-        fig, axs = plt.subplots(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
+        plotter = Plotter(nrows = nrows, ncols = ncols, sharex = 'col', sharey = 'row', squeeze = False, figsize=(figwidth, figheight))
 
         for i, key in enumerate(keys_for_plotting):
             data = sweeping_freqs[key]
-            ax = axs[i // ncols, i % ncols]
+            ax = plotter.axs[i // ncols, i % ncols]
 
             ax.scatter(data.DATA["A"]["FREQ"], data.DATA["A"]["POWER"], marker = "+", label = key)
             ax.set_title(key)
             ax.set_xlim([70,89])
 
-        fig.supxlabel("Frequency (MHz)")
-        fig.supylabel("Power after attenuation (dBm)")
+        plotter.fig.supxlabel("Frequency (MHz)")
+        plotter.fig.supylabel("Power after attenuation (dBm)")
     else:
-        fig, ax = plt.subplots(figsize = (figwidth, figheight))
+        plotter = Plotter(figsize = (figwidth, figheight))
         l = len(keys_for_plotting)
 
         fit_x = np.linspace(start = 70, stop = 90, num = 1000, endpoint = True)
@@ -217,25 +212,25 @@ if not SKIP_4_BW_PLOT:
             fit_y_delta = results[key].eval_uncertainty(x = fit_x)
 
             # PLOT THE DATA
-            ax.scatter(data.DATA["A"]["FREQ"], data.DATA["A"]["POWER"] + j*offset, marker = ".", label = f"{getNumFromKey(key)} kHz Modulation", color = colors[i], s = 6)
-            ax.fill_between(fit_x, fit_y - fit_y_delta, fit_y + fit_y_delta, color='#888888')
+            plotter.axs.scatter(data.DATA["A"]["FREQ"], data.DATA["A"]["POWER"] + j*offset, marker = ".", label = f"{getNumFromKey(key)} kHz Modulation", color = colors[i], s = 6)
+            plotter.axs.fill_between(fit_x, fit_y - fit_y_delta, fit_y + fit_y_delta, color='#888888')
             if i == 1:
-                ax.plot(fit_x, fit_y, color = "tab:red", label = "erf-Rectangle Fit")
-                ax.errorbar(x = bandwidth_plot_x, y = bandwidth_plot_y, xerr = bandwidth_plot_x_err, capsize = 5, ecolor = "black", color = "black", marker = "x", label = "3 dB Bandwidth")
+                plotter.axs.plot(fit_x, fit_y, color = "tab:red", label = "erf-Rectangle Fit")
+                plotter.axs.errorbar(x = bandwidth_plot_x, y = bandwidth_plot_y, xerr = bandwidth_plot_x_err, capsize = 5, ecolor = "black", color = "black", marker = "x", label = "3 dB Bandwidth")
             else:
-                ax.plot(fit_x, fit_y, color = "tab:red")
-                ax.errorbar(x = bandwidth_plot_x, y = bandwidth_plot_y, xerr = bandwidth_plot_x_err, capsize = 5, ecolor = "black", color = "black", marker = "x")
+                plotter.axs.plot(fit_x, fit_y, color = "tab:red")
+                plotter.axs.errorbar(x = bandwidth_plot_x, y = bandwidth_plot_y, xerr = bandwidth_plot_x_err, capsize = 5, ecolor = "black", color = "black", marker = "x")
 
-        ax.set_xlabel("Frequency (MHz)")
-        ax.set_ylabel("Power after attenuation (dBm)")
-        fig.suptitle("\\shortstack{Output RF Bandwidth from POS-150+ AOM Driver\\\\at different modulation frequencies}")
+        plotter.axs.set_xlabel("Frequency (MHz)")
+        plotter.axs.set_ylabel("Power after attenuation (dBm)")
+        plotter.fig.suptitle("\\shortstack{Output RF Bandwidth from POS-150+ AOM Driver\\\\at different modulation frequencies}")
 
-        ax.legend(loc='lower center', bbox_to_anchor = (0.5, -0.35), ncol=2, fancybox=True)
-        fig.subplots_adjust(bottom=0.25) # https://www.adamsmith.haus/python/answers/how-to-place-a-legend-below-the-axes-in-matplotlib-in-python
-        plt.xlim([70,89])
+        plotter.axs.legend(loc='lower center', bbox_to_anchor = (0.5, -0.35), ncol=2, fancybox=True)
+        plotter.fig.subplots_adjust(bottom=0.25) # https://www.adamsmith.haus/python/answers/how-to-place-a-legend-below-the-axes-in-matplotlib-in-python
+        plotter.xlim([70,89])
 
-    plt.show()
-    plt.clf()
+    plotter.savefig(os.path.join(base_dir, "generated", "POS150+bandwidth.pdf"), backend = "pdf")
+    plotter.clf()
 
 # PLOTTING THE BANDWIDTH vs FREQ
 BW_modfreqs = np.array([getNumFromKey(k) for k in keys]) # in kHz
@@ -256,14 +251,14 @@ BW_fit_x = np.linspace(start = np.min(BW_modfreqs), stop = np.max(BW_modfreqs), 
 BW_fit_y = BW_result.eval(x = BW_fit_x)
 BW_it_y_delta = BW_result.eval_uncertainty(x = BW_fit_x)
 
-fig, ax = plt.subplots(figsize = (BW_figwidth, BW_figheight))
+plotter2 = Plotter(figsize = (BW_figwidth, BW_figheight))
 # https://stackoverflow.com/a/68160709
-ax.set_title("\\shortstack{Change in 3dB-Bandwidth of RF Output of POS-150+\\\\Voltage-Controlled Oscillator AOM Driver}")
-ax.errorbar(BW_modfreqs, BW_bandwidths, BW_bandwidths_err, capsize = 3, fmt = ' ', marker = 'x', color = "tab:blue", ecolor = "tab:blue", label = "Data", markersize = 5, elinewidth = 1)
-ax.plot(BW_fit_x, BW_fit_y, color = "tab:red", label = f"${BW_A}\\exp\\left(-\\nicefrac{{f\\!}}{{{BW_tau}}}\\right) + {BW_c}$")
-ax.fill_between(BW_fit_x, BW_fit_y - BW_it_y_delta, BW_fit_y + BW_it_y_delta, color='mistyrose')
-ax.set_ylabel("RF Output Bandwidth (MHz)")
-ax.set_xlabel("Modulation Frequency $f$ (kHz)")
+plotter2.axs.set_title("\\shortstack{Change in 3dB-Bandwidth of RF Output of POS-150+\\\\Voltage-Controlled Oscillator AOM Driver}")
+plotter2.axs.errorbar(BW_modfreqs, BW_bandwidths, BW_bandwidths_err, capsize = 3, fmt = ' ', marker = 'x', color = "tab:blue", ecolor = "tab:blue", label = "Data", markersize = 5, elinewidth = 1)
+plotter2.axs.plot(BW_fit_x, BW_fit_y, color = "tab:red", label = f"${BW_A}\\exp\\left(-\\nicefrac{{f\\!}}{{{BW_tau}}}\\right) + {BW_c}$")
+plotter2.axs.fill_between(BW_fit_x, BW_fit_y - BW_it_y_delta, BW_fit_y + BW_it_y_delta, color='mistyrose')
+plotter2.axs.set_ylabel("RF Output Bandwidth (MHz)")
+plotter2.axs.set_xlabel("Modulation Frequency $f$ (kHz)")
 
 BW_tau_uf = uncertainties.ufloat(BW_result.params["decay"].value, BW_result.params["decay"].stderr)
 BW_t_half = BW_tau_uf * np.log(2)
@@ -272,11 +267,12 @@ print(f"Mean lifetime = {BW_tau_uf.nominal_value} +/- {BW_tau_uf.std_dev}")
 print(f"Halflife      = {BW_t_half.nominal_value} +/- {BW_t_half.std_dev}")
 
 # https://www.statology.org/matplotlib-legend-order/
-handles, labels = plt.gca().get_legend_handles_labels()
+handles, labels = plotter2.gca().get_legend_handles_labels()
 order = [1,0]
 
-ax.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+plotter2.axs.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
 # ax.set_yscale("log")
 # ax.set_xlim([0,100])
 # ax.set_ylim([5,15])
-plt.show()
+# plotter2.show()
+plotter2.savefig(os.path.join(base_dir, "generated", "POS150+bandwidth_change.pdf"), backend = "pdf")

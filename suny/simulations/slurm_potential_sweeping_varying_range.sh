@@ -12,7 +12,7 @@
 #SBATCH --output=/home/y/Yudong.Sun/FermiQP/slurm/slurm.%j.%N.out
 #SBATCH --error=/home/y/Yudong.Sun/FermiQP/slurm/slurm.%j.%N.err.out
 
-# source /etc/profile.d/modules.sh
-# module load openmpi
+source /etc/profile.d/modules.sh
+source /home/y/Yudong.Sun/envvars.sh
 
 mpiexec -n $SLURM_NTASKS python3 potential_sweeping_varying_range.py
