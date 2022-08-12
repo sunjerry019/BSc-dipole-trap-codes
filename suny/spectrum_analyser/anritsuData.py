@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
-from inspect import trace
 from multiprocessing.sharedctypes import Value
+from typing import Tuple
 import numpy as np
+import numpy._typing as np_t
 import re
 
 class AnritsuData():
@@ -124,6 +125,27 @@ class AnritsuData():
 
             line_no += 1
 
+    # @staticmethod
+    # def resample(data_freq: np.ndarray, data_power_dBm: np.ndarray, binsize: float) -> Tuple[np.ndarray, np.ndarray]:
+    #     # binsize unit should be same as data_freq unit
+    #     # actual binsize might be bigger or smaller
+
+    #     original_binsize = np.average(np.diff(data_freq))
+    #     assert binsize > original_binsize, f"New binsize ({binsize}) must be more than old ({original_binsize})"
+
+    #     freq_max = np.max(data_freq)
+    #     freq_min = np.min(data_freq)
+    #     new_bin_num = int(np.around((freq_max - freq_min) / binsize))
+
+    #     new_freq = bin_ndarray(ndarray = data_freq, new_shape = (new_bin_num,) operation = "average")
+    #     print(data_freq, new_freq)
+        
+
+    @staticmethod
+    def dBmToWatt(data: float | np.ndarray) -> float | np.ndarray:
+        # CITE: https://www.rapidtables.com/convert/power/dBm_to_Watt.html
+        return np.power(10, 0.1*(data - 30))
+
     @staticmethod
     def coerce_number(numlike: str) -> int | float | str:
         """Attempts to coerce a number-like argument to a number, otherwise returns it as it was
@@ -153,7 +175,44 @@ class AnritsuData():
             self.datafile.close()
 
 
+# CITE: https://gist.github.com/derricw/95eab740e1b08b78c03f
+# ........ https://gist.github.com/zonca/1348792
+# ........ https://stackoverflow.com/questions/8090229/resize-with-averaging-or-rebin-a-numpy-2d-array
+def bin_ndarray(ndarray: np.ndarray, new_shape: np_t._ShapeLike, operation: str ='sum') -> np.ndarray:
+    """
+    Bins an ndarray in all axes based on the target shape, by summing or
+        averaging.
+    Number of output dimensions must match number of input dimensions.
+    Example
+    -------
+    >>> m = np.arange(0,100,1).reshape((10,10))
+    >>> n = bin_ndarray(m, new_shape=(5,5), operation='sum')
+    >>> print(n)
+    [[ 22  30  38  46  54]
+     [102 110 118 126 134]
+     [182 190 198 206 214]
+     [262 270 278 286 294]
+     [342 350 358 366 374]]
+    """
+    if not operation.lower() in ['sum', 'mean', 'average', 'avg']:
+        raise ValueError("Operation {} not supported.".format(operation))
+    if ndarray.ndim != len(new_shape):
+        raise ValueError("Shape mismatch: {} -> {}".format(ndarray.shape,
+                                                           new_shape))
+    compression_pairs = [(d, c//d) for d, c in zip(new_shape,
+                                                   ndarray.shape)]
+    flattened = [l for p in compression_pairs for l in p]
+    _temp = np.zeros(flattened).squeeze()
+    ndarray = ndarray.reshape(_temp.shape)
+    for i in range(len(new_shape)):
+        if operation.lower() == "sum":
+            ndarray = ndarray.sum(-1*(i+1))
+        elif operation.lower() in ["mean", "average", "avg"]:
+            ndarray = ndarray.mean(-1*(i+1))
+    return ndarray
+
 if __name__ == "__main__":
     import os
     base_dir = os.path.dirname(os.path.realpath(__file__))
-    x = AnritsuData(datafile = os.path.join(base_dir, "./data/2022-08-02-HBW-1kHz.csv"))
+    x = AnritsuData(datafile = os.path.join(base_dir, "./2022-08-02_data/2022-08-02-HBW-1kHz.csv"))
+    # x.resample(data_freq = x.DATA["A"]["FREQ"], data_power_dBm = x.DATA["A"]["POWER"], binsize = 100e-3)
