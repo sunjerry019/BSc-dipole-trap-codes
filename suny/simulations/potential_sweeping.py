@@ -118,7 +118,7 @@ for i in range(len(mod_funcs)):
         # ax.set_zlim(-1.01, 1.01)
         plotter.axs.zaxis.set_major_locator(LinearLocator(10))
         # A StrMethodFormatter is used automatically
-        plotter.axs.zaxis.set_major_formatter('{x:.02f}')
+        plotter.axs.zaxis.set_major_formatter('${x:.02f}$')
 
         # DO LABELS
         plotter.fig.suptitle(f'Sweeping Beam Trap Depth (Beam Separation ${angle_between_beams}^\\circ$, Power ${power}$ W)\n{modulation_function_name}', y = 0.95)

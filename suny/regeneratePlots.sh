@@ -32,3 +32,9 @@ mv ./simulations/generated/* 0_allplots/
 mv ./spectrum_analyser/generated/* 0_allplots/
 
 echo "ALL PLOTS GENERATED"
+
+cd 0_allplots
+rm -f 0_all_figures.pdf
+pdftk *.pdf cat output 0_all_figures.pdf
+
+echo "COMPILED PLOTS"

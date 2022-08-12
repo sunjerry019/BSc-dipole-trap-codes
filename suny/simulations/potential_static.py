@@ -82,7 +82,7 @@ if PLOT3D:
     # ax.set_zlim(-1.01, 1.01)
     plotter.axs.zaxis.set_major_locator(LinearLocator(10))
     # A StrMethodFormatter is used automatically
-    plotter.axs.zaxis.set_major_formatter('{x:.02f}')
+    plotter.axs.zaxis.set_major_formatter('${x:.02f}$')
 
     # DO LABELS
     plotter.fig.suptitle(f'Static Beam Trap Depth (Beam Separation ${angle_between_beams}^\\circ$, Power ${power}$ W)', y = 0.9)
