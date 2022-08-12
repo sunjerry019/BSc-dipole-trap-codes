@@ -72,7 +72,7 @@ axins.set_xlabel("Frequency (MHz)")
 axins.set_ylabel("Normalized Power")
 PLOTTER.ax.indicate_inset_zoom(axins, edgecolor="#222222")
 
-PLOTTER.fig.subplots_adjust(top= 0.82, right=0.6)
+PLOTTER.fig.subplots_adjust(top= 0.82, right=0.6, bottom = 0.15)
 PLOTTER.fig.suptitle("RF Spectrum at $100$ kHz Modulation Frequency")
 
 # PLOTTER.show()
