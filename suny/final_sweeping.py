@@ -13,7 +13,7 @@ import numpy as np
 ## matplotlib settings
 rc('text', usetex = True)
 rc('text.latex', preamble = r"\usepackage{libertine}\usepackage{nicefrac}")
-rc('font', size = 11, family = "Serif")
+rc('font', size = 11, family = "Serif") # Sans-Serif
 ## END MPL Settings
 
 # SETTINGS
