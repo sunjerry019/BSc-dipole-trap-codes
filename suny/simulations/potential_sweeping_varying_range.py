@@ -179,6 +179,7 @@ if mpirank == 0:
     # https://stackoverflow.com/a/26553855
     # Flatten the outermost dimension
     allpotentials = np.reshape(allpotentials, newshape = (-1, *allpotentials.shape[2:]))
+    colourmeshes = []
 
     # PLOTTING
     X, Z = np.meshgrid(x * 1e6, z * 1e3)
@@ -189,13 +190,15 @@ if mpirank == 0:
                 vmin = minimum_potential, \
                 vmax = maximum_potential, \
                 rasterized = True)
+            colourmeshes.append(p)
 
             if i == 0:
                 plotter.axs[i, j].set_title(f"$\\sigma = {sweeping_range[j]}\\omega_0$")
             if j == 0:
                 plotter.axs[i, j].set_ylabel(f"{modulation_function_names[i]}")
 
-    cb = plotter.fig.colorbar(cm.ScalarMappable(norm = None, cmap = plotter.COLORMAP_R), ax = plotter.axs)
+    # cb = plotter.fig.colorbar(cm.ScalarMappable(norm = None, cmap = plotter.COLORMAP_R), ax = plotter.axs)
+    cb = plotter.fig.colorbar(colourmeshes[0], ax = plotter.axs)
 
     # SET LABELS
     cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)

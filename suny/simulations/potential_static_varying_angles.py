@@ -87,6 +87,7 @@ for angle in angle_between_beams:
 allpotentials_np  = np.array(allpotentials)
 minimum_potential = np.min(allpotentials_np)
 maximum_potential = np.max(allpotentials_np)
+colourmeshes = []
 
 for i in range(nrows):
     for j in range(ncols):
@@ -96,10 +97,13 @@ for i in range(nrows):
             vmin = minimum_potential, \
             vmax = maximum_potential, \
             rasterized = True)
+        colourmeshes.append(p)
+
         plotter.axs[i, j].set_title(f"$\\theta = {angle_between_beams[i * ncols + j]}^\\circ$")
         print(f"Making colormesh for angle = {angle_between_beams[i * ncols + j]}...Done")
 
-cb = plotter.fig.colorbar(cm.ScalarMappable(norm = None, cmap = plotter.COLORMAP_R), ax = plotter.axs)
+# cb = plotter.fig.colorbar(cm.ScalarMappable(norm = None, cmap = plotter.COLORMAP_R), ax = plotter.axs)
+cb = plotter.fig.colorbar(colourmeshes[0], ax = plotter.axs)
 
 # SET LABELS
 cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
