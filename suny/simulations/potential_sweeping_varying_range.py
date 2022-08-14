@@ -5,6 +5,10 @@ import numpy as np
 from sympy import false
 from dipoletrapli import DipoleTrapLi, rotate_points, cartesian_product 
 
+from matplotlib.ticker import AutoMinorLocator
+
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 try:
     from plotter import Plotter
 except ModuleNotFoundError:
@@ -190,7 +194,24 @@ if mpirank == 0:
                 vmin = minimum_potential, \
                 vmax = maximum_potential, \
                 rasterized = True)
+
             colourmeshes.append(p)
+
+            # if j > 1:
+            #     # For the right 4 plots, we do a re-plot to show more levels
+
+            #     _axins = plotter.axs[i, j].inset_axes([0.5, 0.15, 0.5, 0.75]) # [x0, y0, width, height]
+            #     _c = _axins.contour(X, Z, allpotentials[i * ncols + j], cmap = plotter.COLORMAP_R, rasterized = True)
+            #     _axins.tick_params(axis = 'both', which = 'both', direction = 'out')
+            #     _axins.tick_params(axis = 'both', which = 'minor', colors = plotter.MINORTICK_COLOR)
+            #     _axins.xaxis.set_minor_locator(AutoMinorLocator())
+            #     _axins.yaxis.set_minor_locator(AutoMinorLocator())
+            #     plotter.axs[i, j].indicate_inset_zoom(_axins, edgecolor="#222222")
+
+            #     # Add colourbar
+            #     divider = make_axes_locatable(_axins)
+            #     cax = divider.append_axes('right', size='5%', pad=0.05)
+            #     cb = plotter.fig.colorbar(_c, cax=cax, orientation='vertical')
 
             if i == 0:
                 plotter.axs[i, j].set_title(f"$\\sigma = {sweeping_range[j]}\\omega_0$")
@@ -199,6 +220,8 @@ if mpirank == 0:
 
     # cb = plotter.fig.colorbar(cm.ScalarMappable(norm = None, cmap = plotter.COLORMAP_R), ax = plotter.axs)
     cb = plotter.fig.colorbar(colourmeshes[0], ax = plotter.axs)
+
+    # plotter.fig.subplots_adjust(right=0.6)
 
     # SET LABELS
     cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)

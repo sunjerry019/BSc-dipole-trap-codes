@@ -11,7 +11,7 @@ import matplotlib.legend as mpl_l
 from matplotlib.axes._axes import Axes
 from matplotlib.ticker import AutoMinorLocator
 
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, List, Tuple, Union
 
 import numpy as np
 
@@ -47,7 +47,7 @@ class Plotter():
     #  Returns tuple of handles, labels for axis ax, after reordering them to conform to the label order `order`, and if unique is True, after removing entries with duplicate labels.
     # https://stackoverflow.com/a/35926913
     @staticmethod
-    def reorderLegend(ax: Axes | None = None, order: list | None = None, unique: bool = False) -> Tuple[Tuple, Tuple]:
+    def reorderLegend(ax: Union[Axes, None] = None, order: Union[list, None] = None, unique: bool = False) -> Tuple[Tuple, Tuple]:
         if ax is None: 
             ax = plt.gca()
 
@@ -108,7 +108,7 @@ class Plotter():
         return defaults | kwargs # merge the two dictionaries
 
     @staticmethod
-    def unique_everseen(seq: Iterable, key: Iterable | None = None) -> list[Any]:
+    def unique_everseen(seq: Iterable, key: Union[Iterable, None] = None) -> List[Any]:
         seen = set()
         seen_add = seen.add
         return [x for x,k in zip(seq,key) if not (k in seen or seen_add(k))]
