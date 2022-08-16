@@ -12,6 +12,7 @@ cd ./simulations/
 python3 potential_static_varying_angles.py &
 python3 potential_static.py &
 python3 potential_sweeping.py &
+python3 potential_static_single_beam.py &
 cd ..
 
 cd ./spectrum_analyser
