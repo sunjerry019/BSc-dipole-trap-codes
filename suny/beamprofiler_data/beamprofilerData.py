@@ -5,6 +5,10 @@ import numpy._typing as np_t
 import matplotlib.pyplot as plt
 import scipy.ndimage
 
+from uncertainties import ufloat
+
+import pandas as pd
+
 import sys
 
 class BeamprofilerImageData():
@@ -92,13 +96,38 @@ class BeamprofilerImageData():
         return cov
 
 class BeamprofilerTimeseriesData():
-    def __init__(self, datafile: str) -> None:
-        pass
+    def __init__(self, datafile: str, autostats: bool = True) -> None:
+        """Class for processing the time series data obtained from the in-house beam-profiler app
+
+        Args:
+            datafile (str): The path to the datafile
+            autostats (bool, optional): Whether to automatically process the statistics. Defaults to True.
+        """
+        self.ORIGINAL_DATA = pd.read_csv(datafile, delimiter = ";", header = 0)
+        self.DATA = {}
+        self.NUM_DTPT = len(self.ORIGINAL_DATA)
+
+        if autostats:
+            self.processStats()
+        
+    def processStats(self) -> None:
+        for col in self.ORIGINAL_DATA.columns:
+            if col == "unixtime":
+                continue
+            
+            self.DATA[col] = ufloat(np.mean(self.ORIGINAL_DATA[col]), np.std(self.ORIGINAL_DATA[col]))
+
 
 if __name__ == "__main__":
     import os
     base_dir = os.path.dirname(os.path.realpath(__file__))
-    x = BeamprofilerImageData(datafile = os.path.join(base_dir, "/mnt/data/School/University/Deutschland/LMU/Modules/1_PH/2022SS/Bachelorarbeit/dipole-trap-codes/suny/beamprofiler_data/2022-08-05_High Frequency Painting/100kHz_1.250.0V_10MHzModulation.csv"))
-    # x.cropToContent()
-    # x.padToSize((500, 500))
-    x.displayImage()
+
+    # Image Data Test
+    # x = BeamprofilerImageData(datafile = os.path.join("/mnt/data/School/University/Deutschland/LMU/Modules/1_PH/2022SS/Bachelorarbeit/dipole-trap-codes/suny/beamprofiler_data/2022-08-05_High Frequency Painting/100kHz_1.250.0V_10MHzModulation.csv"))
+    # # x.cropToContent()
+    # # x.padToSize((500, 500))
+    # x.displayImage()
+
+    # Time Series Data Test
+    x = BeamprofilerTimeseriesData(datafile = os.path.join(base_dir, "2022-07-13_Caustic after 200mm Lens", "0.0mm.csv"))
+    
