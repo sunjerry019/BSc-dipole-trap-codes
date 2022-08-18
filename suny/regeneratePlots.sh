@@ -21,6 +21,7 @@ cd ..
 
 cd ./m-squared
 python3 2022-07-12_IPG_m2_plot.py &
+python3 2022-07-13_after_200m_m2_plot.py &
 cd ..
 
 python3 ./final_sweeping.py &

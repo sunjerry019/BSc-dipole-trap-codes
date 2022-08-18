@@ -116,7 +116,7 @@ class Plotter():
     @staticmethod
     def initMPLSettings():
         rc('text', usetex = True)
-        rc('text.latex', preamble = r"\usepackage{libertine}\usepackage{nicefrac}")
+        rc('text.latex', preamble = r"\usepackage{libertine}\usepackage{amsmath}\usepackage{nicefrac}\usepackage{siunitx}")
         rc('font', size = 11, family = "Sans-Serif")
 
     # MAPPING FUNCS
