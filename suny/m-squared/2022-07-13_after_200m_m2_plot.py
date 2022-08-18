@@ -6,6 +6,7 @@ from plotter import Plotter
 import fitting
 
 from beamprofiler_data.beamprofilerData import BeamprofilerTimeseriesData
+from helpers import findIntersection
 
 import numpy as np
 import os, sys
@@ -105,16 +106,13 @@ plotter.ax.set_title("\\shortstack{Beam Caustic after 200 mm Lens\\\\Wavelength 
 plotter.ax.set_xlabel("Position (mm)")
 plotter.ax.set_ylabel("Beam Radius ($\\mu$m)")
 
-plotter.fig.text(0.5, 0.4, f"\\begin{{align}}\\omega_{{0\\text{{, horz}}}} &= ({np.around(fitters[0].output.beta[0], decimals = 2)} \\pm {np.around(fitters[0].output.sd_beta[0], decimals = 2)}) ~\\si{{\\micro\\meter}}\\\\\\omega_{{0\\text{{, vert}}}} &= ({np.around(fitters[1].output.beta[0], decimals = 2)} \\pm {np.around(fitters[1].output.sd_beta[0], decimals = 2)}) ~\\si{{\\micro\\meter}}\\end{{align}}")
+plotter.fig.text(0.5, 0.4, f"\\begin{{align}}\\omega_{{0\\text{{, horz}}}} &= ({np.around(fitters[0].output.beta[0], decimals = 2)} \\pm {np.around(fitters[0].output.sd_beta[0], decimals = 2)}) ~\\si{{\\micro\\meter}}\\\\\\omega_{{0\\text{{, vert}}}} &= ({np.around(fitters[1].output.beta[0], decimals = 2)} \\pm {np.around(fitters[1].output.sd_beta[0], decimals = 2)}) ~\\si{{\\micro\\meter}}\\end{{align}}", fontsize = "large")
 # plotter.ax.arrow(7, 37, 0.3, -5) # data units
                         # end              # begin
-plotter.ax.annotate("", xy=(7.3, 27), xytext=(7, 52), arrowprops=dict(arrowstyle="->"))
+plotter.ax.annotate("", xy=(7.3, 27), xytext=(7, 51), arrowprops=dict(arrowstyle="->"))
 
 plotter.ax.legend(loc = "upper right")
 Plotter.reorderLegend(ax = plotter.ax, order = ["Horizontal", f"Horizontal-Fit, $M^2 = {np.around(fitters[0].m_squared[0], decimals = 3)}$", "Vertical", f"Vertical-Fit, $M^2 = {np.around(fitters[1].m_squared[0], decimals = 3)}$"])
-
-# plotter.show()
-plotter.savefig(os.path.join(base_dir, "generated", "2022-07-13_caustic_after_200mm_lens.pdf"), backend = "pdf")
 
 z0_x = ufloat(fitters[0].output.beta[1], fitters[0].output.sd_beta[1])
 z0_y = ufloat(fitters[1].output.beta[1], fitters[1].output.sd_beta[1])
@@ -122,3 +120,30 @@ z0_y = ufloat(fitters[1].output.beta[1], fitters[1].output.sd_beta[1])
 delta = z0_x - z0_y
 print("====================================")
 print("Astigmatism: ", delta.nominal_value, "+/-", delta.std_dev, "mm")
+
+print("====================================")
+
+# FIND THE INTERSECTION
+def horz(x: float | np.ndarray) -> float | np.ndarray:
+    return fitters[0].predict(x = x)
+
+def vert(x: float | np.ndarray) -> float | np.ndarray:
+    return fitters[1].predict(x = x)
+
+intersection_z = findIntersection(func1 = horz, func2 = vert, initialGuess = 7)
+intersection_waist = horz(intersection_z)
+
+if not isinstance(intersection_z, float):
+    intersection_z = intersection_z[0]
+
+if not isinstance(intersection_waist, float):
+    intersection_waist = intersection_waist[0]
+
+print(intersection_z, "mm:", intersection_waist, "um")
+
+plotter.fig.text(0.2, 0.2, f"\\shortstack[l]{{Intersection\\\\$({np.around(intersection_z, decimals = 2)} \\si{{\\milli\\meter}}, {np.around(intersection_waist, decimals = 2)} \\si{{\\micro\\meter}})$}}", fontsize = "large")
+                        # end                                          # begin
+plotter.ax.annotate("", xy=(intersection_z - 0.5, intersection_waist), xytext=(4, 30), arrowprops=dict(arrowstyle="->"))
+
+# plotter.show()
+plotter.savefig(os.path.join(base_dir, "generated", "2022-07-13_caustic_after_200mm_lens.pdf"), backend = "pdf")
