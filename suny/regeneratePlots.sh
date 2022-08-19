@@ -24,6 +24,10 @@ python3 2022-07-12_IPG_m2_plot.py &
 python3 2022-07-13_after_200m_m2_plot.py &
 cd ..
 
+cd ./thorlabs
+python3 B_Broadband_AR-Coating.py & 
+cd ..
+
 python3 ./final_sweeping.py &
 python3 ./final_sweeping_100kHz.py & 
 
@@ -46,6 +50,7 @@ scp -i ~/.ssh/lrz_ed25519 Yudong.Sun@physik.ssh.yudong.dev:~/FermiQP/simulations
 mv ./simulations/generated/* 0_allplots/
 mv ./spectrum_analyser/generated/* 0_allplots/
 mv ./m-squared/generated/* 0_allplots/
+mv ./thorlabs/generated/* 0_allplots/
 
 echo "ALL PLOTS GENERATED"
 

@@ -33,16 +33,15 @@ class Plotter():
             for i in range(_vert):
                 for j in range(_horz):
                     ax = self.axs[i, j]
-                    ax.tick_params(axis = 'both', which = 'both', direction = 'out')
-                    ax.tick_params(axis = 'both', which = 'minor', colors = self.MINORTICK_COLOR)
-                    ax.xaxis.set_minor_locator(AutoMinorLocator())
-                    ax.yaxis.set_minor_locator(AutoMinorLocator())
+                    self.addMinorTicks(ax)
         else:
-            self.ax.tick_params(axis = 'both', which = 'both', direction = 'out')
-            self.ax.tick_params(axis = 'both', which = 'minor', colors = self.MINORTICK_COLOR)
-            self.ax.xaxis.set_minor_locator(AutoMinorLocator())
-            self.ax.yaxis.set_minor_locator(AutoMinorLocator())
+            self.addMinorTicks(self.ax)
     
+    def addMinorTicks(self, ax: Axes) -> None:
+        ax.tick_params(axis = 'both', which = 'both', direction = 'out')
+        ax.tick_params(axis = 'both', which = 'minor', colors = self.MINORTICK_COLOR)
+        ax.xaxis.set_minor_locator(AutoMinorLocator())
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     #  Returns tuple of handles, labels for axis ax, after reordering them to conform to the label order `order`, and if unique is True, after removing entries with duplicate labels.
     # https://stackoverflow.com/a/35926913
