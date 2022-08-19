@@ -141,7 +141,7 @@ if not isinstance(intersection_waist, float):
 
 print(intersection_z, "mm:", intersection_waist, "um")
 
-plotter.fig.text(0.2, 0.2, f"\\shortstack[l]{{Intersection\\\\$({np.around(intersection_z, decimals = 2)} \\si{{\\milli\\meter}}, {np.around(intersection_waist, decimals = 2)} \\si{{\\micro\\meter}})$}}", fontsize = "large")
+plotter.fig.text(0.2, 0.2, f"\\shortstack[l]{{Point of round beam\\\\$({np.around(intersection_z, decimals = 2)} \\si{{\\milli\\meter}}, {np.around(intersection_waist, decimals = 2)} \\si{{\\micro\\meter}})$}}", fontsize = "large")
                         # end                                          # begin
 plotter.ax.annotate("", xy=(intersection_z - 0.5, intersection_waist), xytext=(4, 30), arrowprops=dict(arrowstyle="->"))
 
