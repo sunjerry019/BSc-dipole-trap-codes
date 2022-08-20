@@ -200,7 +200,7 @@ if not SKIP_4_BW_PLOT:
         colors = ['darkturquoise', 'burlywood', 'mediumseagreen', 'lightcoral']
 
         for i, key in enumerate(keys_for_plotting):
-            j = l - i
+            j = l - i - 1
             data = sweeping_freqs[key]
 
             _LR = [BW_lefts[key], BW_rights[key]]
