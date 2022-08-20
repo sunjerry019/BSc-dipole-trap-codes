@@ -32,6 +32,10 @@ cd ./aom_driver_characterisation
 python3 VCO_Freq_power.py & 
 cd ..
 
+cd ./beamprofiler_data
+python3 ./am_mod.py &
+cd ..
+
 python3 ./final_sweeping.py &
 python3 ./final_sweeping_100kHz.py & 
 
