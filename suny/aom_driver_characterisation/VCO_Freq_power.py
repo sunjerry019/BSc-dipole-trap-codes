@@ -9,7 +9,7 @@ from spectrum_analyser.anritsuData import AnritsuData
 import os
 
 #   SETTINGS 
-figsize = (5.5, 3.5)
+figsize = (5.3, 3.5)
 datafile = os.path.join(__init__.base_dir, "VCO_Freq_power.dat")
 # / SETTINGS
 
@@ -26,5 +26,6 @@ PLOTTER.ax.set_xlabel("Measured Output Frequency (MHz)")
 PLOTTER.ax.set_ylabel("RF Output Power (W)")
 PLOTTER.ax.set_ylim([2.3, 5.7])
 PLOTTER.ax.legend()
+PLOTTER.fig.tight_layout()
 # PLOTTER.show()
 PLOTTER.savefig(os.path.join(__init__.base_dir, "generated", "VCO_Freq_power.pdf"), backend = "PDF")
