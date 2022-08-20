@@ -28,6 +28,10 @@ cd ./thorlabs
 python3 B_Broadband_AR-Coating.py & 
 cd ..
 
+cd ./aom_driver_characterisation
+python3 VCO_Freq_power.py & 
+cd ..
+
 python3 ./final_sweeping.py &
 python3 ./final_sweeping_100kHz.py & 
 
@@ -51,6 +55,7 @@ mv ./simulations/generated/* 0_allplots/
 mv ./spectrum_analyser/generated/* 0_allplots/
 mv ./m-squared/generated/* 0_allplots/
 mv ./thorlabs/generated/* 0_allplots/
+mv ./aom_driver_characterisation/generated/* 0_allplots/
 
 echo "ALL PLOTS GENERATED"
 
