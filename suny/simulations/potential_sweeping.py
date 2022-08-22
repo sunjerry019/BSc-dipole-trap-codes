@@ -38,6 +38,8 @@ numsamples = 200
 x_numsamples = 1000
 z_numsamples = 1000
 
+PLOTSchnitt = False
+
 def sine_mod(t):
     return np.sin(2*np.pi*t)
 
@@ -104,6 +106,16 @@ for i in range(len(mod_funcs)):
     # cs      = ax.contour(x, z, potentials_for_contour_plotting, levels = 15)
     # # ax.clabel(cs, inline=True, fontsize=10)
     # ax.set_title('Simplest default with labels')
+
+    if PLOTSchnitt:
+        lenz, lenx = potentials_for_contour_plotting.shape
+        schnitt_x = potentials_for_contour_plotting[lenz // 2, :]
+        
+        plotter = Plotter()
+        plotter.ax.plot(x * 1e6, schnitt_x)
+        plotter.show()
+
+        continue
 
     if PLOT3D:
         plotter = Plotter(subplot_kw={"projection": "3d"})
