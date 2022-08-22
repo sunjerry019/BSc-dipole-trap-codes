@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import numpy as np
 from dipoletrapli import DipoleTrapLi, rotate_points, cartesian_product 
 
@@ -28,6 +29,7 @@ rotation_axis = np.array([0,1,0]) # y-axis
 angle_between_beams = 20          # degrees
 power = 100                       # W
 PLOT3D = True
+PLOTSchnitt = False
 # END SETTINGS
 
 x = np.linspace(start = -200, stop = 200, num = 5000, endpoint = True) * 1e-6
@@ -68,6 +70,16 @@ X, Z = np.meshgrid(x * 1e6, z * 1e3)
 # cs      = ax.contour(x, z, potentials_for_contour_plotting, levels = 15)
 # # ax.clabel(cs, inline=True, fontsize=10)
 # ax.set_title('Simplest default with labels')
+
+if PLOTSchnitt:
+    lenz, lenx = potentials_for_contour_plotting.shape
+    schnitt_x = potentials_for_contour_plotting[lenz // 2, :]
+    
+    plotter = Plotter()
+    plotter.ax.plot(x * 1e6, schnitt_x)
+    plotter.show()
+
+    sys.exit()
 
 if PLOT3D:
     plotter = Plotter(subplot_kw={"projection": "3d"})
