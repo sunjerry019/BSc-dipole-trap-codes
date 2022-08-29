@@ -214,7 +214,7 @@ if mpirank == 0:
             #     cb = plotter.fig.colorbar(_c, cax=cax, orientation='vertical')
 
             if i == 0:
-                plotter.axs[i, j].set_title(f"$\\sigma = {sweeping_range[j]}\\omega_0$")
+                plotter.axs[i, j].set_title(f"$A = {sweeping_range[j]}\\omega_0$")
             if j == 0:
                 plotter.axs[i, j].set_ylabel(f"{modulation_function_names[i]}")
 
@@ -225,7 +225,7 @@ if mpirank == 0:
 
     # SET LABELS
     cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
-    plotter.fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ($10^\\circ$ Separation) at varying amplitude $\\sigma$')
+    plotter.fig.suptitle(f'${power}$ W Sweeping Beam Trap Depth ($10^\\circ$ Separation) at varying amplitude $A$')
     try:
         plotter.fig.supxlabel('$x$ ($\\mu$m)')
         plotter.fig.supylabel('Propagation direction $z$ (mm)')
