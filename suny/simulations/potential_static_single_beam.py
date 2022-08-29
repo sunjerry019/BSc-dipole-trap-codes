@@ -10,7 +10,7 @@ from matplotlib.ticker import LinearLocator
 beam_params = {
     "w_0": [25e-6  , 25e-6 ], # m
     "z_0": [0   , 0  ], # m
-    "Msq": [1.1 , 1.1],
+    "Msq": [1 , 1],
 }
 
 wavelength = 1070e-9  #nm
