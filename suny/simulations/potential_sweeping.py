@@ -53,7 +53,7 @@ def ramp_mod(t):
 # modulation_function_name = "Simple Ramp Modulation"
 
 mod_funcs = [ramp_mod, sine_mod]
-mod_func_names = ["Simple Sinusoidal Modulation", "Simple Ramp Modulation"]
+mod_func_names = ["Ramp Modulation", "Sinusoidal Modulation"]
 filenames = ["sweeping_potential_3D_ramp.pdf", "sweeping_potential_3D_sine.pdf"]
 
 # END SETTINGS
