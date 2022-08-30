@@ -4,7 +4,7 @@
 #SBATCH --comment="Process Sweeping Potentials"
 #SBATCH --ntasks=8
 #SBATCH --partition=cip
-#SBATCH --mem-per-cpu=32768
+#SBATCH --mem-per-cpu=8192
 #SBATCH --time=24:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=Yudong.Sun@physik.uni-muenchen.de

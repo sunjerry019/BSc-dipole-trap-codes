@@ -214,7 +214,7 @@ if mpirank == 0:
             #     cb = plotter.fig.colorbar(_c, cax=cax, orientation='vertical')
 
             if i == 0:
-                plotter.axs[i, j].set_title(f"$A = {sweeping_range[j]}\\omega_0$")
+                plotter.axs[i, j].set_title(f"$A = {sweeping_range[j]}w_0$")
             if j == 0:
                 plotter.axs[i, j].set_ylabel(f"{modulation_function_names[i]}")
 
