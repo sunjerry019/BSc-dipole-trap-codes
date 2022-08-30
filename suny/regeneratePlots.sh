@@ -31,6 +31,7 @@ cd ..
 
 cd ./aom_driver_characterisation
 python3 VCO_Freq_power.py & 
+python3 aom-amp-driver-response.py & 
 cd ..
 
 cd ./beamprofiler_data
@@ -39,6 +40,10 @@ cd ..
 
 cd ./ipg
 python3 ./power.py &
+cd ..
+
+cd ./diffraction_efficiency
+python3 ./aom-de.py & 
 cd ..
 
 python3 ./final_sweeping.py &
@@ -66,6 +71,7 @@ mv ./m-squared/generated/* 0_allplots/
 mv ./thorlabs/generated/* 0_allplots/
 mv ./aom_driver_characterisation/generated/* 0_allplots/
 mv ./ipg/generated/* 0_allplots/
+mv ./diffraction_efficiency/generated/* 0_allplots/
 
 echo "ALL PLOTS GENERATED"
 
