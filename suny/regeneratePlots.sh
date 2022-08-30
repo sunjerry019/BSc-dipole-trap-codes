@@ -13,6 +13,7 @@ python3 potential_static_varying_angles.py &
 python3 potential_static.py &
 python3 potential_sweeping.py &
 python3 potential_static_single_beam.py &
+python3 potential_sweeping_single_beam.py &
 cd ..
 
 cd ./spectrum_analyser
@@ -34,6 +35,10 @@ cd ..
 
 cd ./beamprofiler_data
 python3 ./am_mod.py &
+cd ..
+
+cd ./ipg
+python3 ./power.py &
 cd ..
 
 python3 ./final_sweeping.py &
@@ -60,6 +65,7 @@ mv ./spectrum_analyser/generated/* 0_allplots/
 mv ./m-squared/generated/* 0_allplots/
 mv ./thorlabs/generated/* 0_allplots/
 mv ./aom_driver_characterisation/generated/* 0_allplots/
+mv ./ipg/generated/* 0_allplots/
 
 echo "ALL PLOTS GENERATED"
 
