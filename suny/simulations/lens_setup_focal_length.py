@@ -35,3 +35,7 @@ print(focus * 1e6, "um")
 print("We choose f1 = 75mm, f2 = 400mm, hence we obtain:")
 focus = omega_0_prime(**params, f1 = 75e-3, f2 = 400e-3)
 print(focus * 1e6, "um")
+
+print("We choose f1 = 75mm, f2 = 500mm, hence we obtain:")
+focus = omega_0_prime(**params, f1 = 75e-3, f2 = 500e-3)
+print(focus * 1e6, "um")
