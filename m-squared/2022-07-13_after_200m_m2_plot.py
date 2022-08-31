@@ -106,7 +106,7 @@ plotter.ax.set_title("\\shortstack{Beam Caustic after 200 mm Lens\\\\Wavelength 
 plotter.ax.set_xlabel("Position (mm)")
 plotter.ax.set_ylabel("Beam Radius ($\\mu$m)")
 
-plotter.fig.text(0.5, 0.4, f"\\begin{{align}}\\omega_{{0\\text{{, horz}}}} &= ({np.around(fitters[0].output.beta[0], decimals = 2)} \\pm {np.around(fitters[0].output.sd_beta[0], decimals = 2)}) ~\\si{{\\micro\\meter}}\\\\\\omega_{{0\\text{{, vert}}}} &= ({np.around(fitters[1].output.beta[0], decimals = 2)} \\pm {np.around(fitters[1].output.sd_beta[0], decimals = 2)}) ~\\si{{\\micro\\meter}}\\end{{align}}", fontsize = "large")
+plotter.fig.text(0.5, 0.4, f"\\begin{{align}}w_{{0\\text{{, horz}}}} &= ({np.around(fitters[0].output.beta[0], decimals = 2)} \\pm {np.around(fitters[0].output.sd_beta[0], decimals = 2)}) ~\\si{{\\micro\\meter}}\\\\w_{{0\\text{{, vert}}}} &= ({np.around(fitters[1].output.beta[0], decimals = 2)} \\pm {np.around(fitters[1].output.sd_beta[0], decimals = 2)}) ~\\si{{\\micro\\meter}}\\end{{align}}", fontsize = "large")
 # plotter.ax.arrow(7, 37, 0.3, -5) # data units
                         # end              # begin
 plotter.ax.annotate("", xy=(7.3, 27), xytext=(7, 51), arrowprops=dict(arrowstyle="->"))
