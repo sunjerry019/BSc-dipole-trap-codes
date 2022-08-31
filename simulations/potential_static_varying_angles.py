@@ -52,7 +52,7 @@ assert isinstance(plotter.axs, np.ndarray)
 allpotentials = []
 
 for angle in angle_between_beams:
-    print(f"Calculating for angle = {angle} degrees...", end = "\r")
+    print(f"Calculating for angle = {angle} degrees...")
     points_beam1 = rotate_points(points = points, axis = rotation_axis, degrees =  angle/2)
     points_beam2 = rotate_points(points = points, axis = rotation_axis, degrees = -angle/2)
 
@@ -108,7 +108,8 @@ cb = plotter.fig.colorbar(colourmeshes[0], ax = plotter.axs)
 # SET LABELS
 cb.ax.set_ylabel('Trap Depth (mK $\\cdot k_{\\!B}$)', rotation=90, labelpad = 15)
 plotter.fig.suptitle(f'${power}$ W Static Beam Trap Depth at varying beam separation $\\theta$')
-plotter.fig.supxlabel('$x$ ($\\mu$m)')
+# plotter.fig.supxlabel('$x$ ($\\mu$m)')
+plotter.fig.text(0.43, 0.03, '$x$ ($\\mu$m)', va='center', ha='center', fontsize='large')
 plotter.fig.supylabel('Propagation direction $z$ (mm)')
 # END SET LABELS
 
